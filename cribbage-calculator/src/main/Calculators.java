@@ -180,9 +180,34 @@ final class Calculators {
 		return 0;
 	}	
 	
+	/**
+	 * Returns an array of just the values of each card. Used to simplify
+	 * calculations where suits are unimportant (fifteens, flushes and multiples).
+	 * Face cards are still distinguished between each other
+	 * 
+	 * @param hand a valid cribbage 5-hand
+	 * @param trueValues pass in true if 
+	 * @return an array of the five card's value
+	 */
+	private static int[] removeSuits(String[] hand, boolean trueValues) {
+		int[] values = new int[5];
+		for (int i = 0; i < hand.length; i++) {
+			String card = hand[i];
+			if (card.length() == 3) {
+				values[i] = 10 + card.charAt(1) - '0';
+			} else {
+				values[i] = card.charAt(0) - '0';
+			}
+		}
+		return values;
+	}
 	
 	public static void main(String[] args) {
 		String[] hand = {"3H", "11H", "5S", "13C", "5H"};
-		System.out.println(nobs(hand));
+		
+		int[] a = removeSuits(hand);
+		for (int i : a) {
+			System.out.println(i);
+		}
 	}
 }
