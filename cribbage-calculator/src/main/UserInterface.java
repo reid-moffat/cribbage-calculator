@@ -24,10 +24,25 @@ final class UserInterface {
 	private HashSet<String> cardPile;
 
 	private String[] hand;
+	
+	private Scanner in;
+	
+	private static final String ENTER_PLAYERS = "Cribbage Calculator\n" +
+												"Created by Reid Moffat\n\n" +  
+			                                    "How many players (2-4)?";
+	
+	private static final String ENTER_CARDS = "\nEach card must be its value (from 1 to 13) plus the suit\n" +
+											  "Examples:\n" +
+											  "'1D': Ace of diamonds\n" +
+											  "'4S': Four of spades\n" +
+											  "'10C': Ten of clubs\n" +
+											  "'13H': King of hearts\n" +
+											  "Enter each of the cards in your hand one by one below:\n";
 
 	public UserInterface() {
 		this.cardPile = new HashSet<String>();
 		this.initialzeDeck();
+		this.in = new Scanner(System.in);
 	}
 
 	private void initialzeDeck() {
@@ -40,29 +55,33 @@ final class UserInterface {
 		}
 	}
 
-	private void getUserInput() {
-		Scanner in = new Scanner(System.in);
+	/**
+	 * Runs the program's user interface, calling the required methods in the
+	 * correct order
+	 */
+	public void run() {
+		int numCards = this.getNumCards();
+		this.getCards(numCards);
+		this.printAveragePoints();
+	}
 
-		System.out.println("Cribbage Calculator");
-		System.out.println("Created by Reid Moffat");
+	private int getNumCards() {
+		System.out.println(UserInterface.ENTER_PLAYERS);
 
-		System.out.println("\nHow many players (2-4)?");
 		String numPlayers = in.nextLine();
 		while (!numPlayers.equals("2") && !numPlayers.equals("3") && !numPlayers.equals("4")) {
 			System.out.println("Invalid input. Try again:");
 			numPlayers = in.nextLine();
 		}
-		int numCards = numPlayers.equals("2") ? 6 : 5;
-		System.out.println(numPlayers + " players: " + numCards + " cards to start");
-		this.hand = new String[numCards];
 
-		System.out.println("\nEach card must be its value (from 1 to 13) plus the suit");
-		System.out.println("Examples:");
-		System.out.println("'1D': Ace of diamonds");
-		System.out.println("'4S': Four of spades");
-		System.out.println("'10C': Ten of clubs");
-		System.out.println("'13H': King of hearts");
-		System.out.println("Enter each of the " + numCards + " cards in your hand one by one below:\n");
+		int numCards = numPlayers.equals("2") ? 6 : 5;
+		this.hand = new String[numCards];
+		System.out.println(numPlayers + " players: " + numCards + " cards to start");
+		return numCards;
+	}
+
+	private void getCards(int numCards) {
+		System.out.println(UserInterface.ENTER_CARDS);
 
 		boolean noDuplicates = false;
 		while (!noDuplicates) {
@@ -77,19 +96,42 @@ final class UserInterface {
 				hand[i] = card.toUpperCase();
 				System.out.println("Card " + (i + 1) + ": " + cardValue + "\n");
 			}
-			
+
 			noDuplicates = new HashSet<String>(Arrays.asList(hand)).size() == numCards;
-			
+
 			if (!noDuplicates) {
 				System.out.println("Duplicate card in hand, input cards again:\n");
 			}
 		}
 
-		System.out.println(this.getAveragePoints());
-
-		in.close();
+		this.in.close();
 	}
 
+	private void printAveragePoints() {
+		StringBuilder sb = new StringBuilder();
+		String[] handCopy;
+
+		if (this.hand.length == 6) {
+			;
+		} else {
+			sb.append("Average points for each drop combination:");
+			for (int i = 0; i < hand.length; i++) {
+				double averagePoints = 0;
+				String droppedCard = this.hand[i];
+				for (String starterCard : this.cardPile) {
+					if (!this.containsCard(starterCard)) {
+						handCopy = Arrays.copyOf(hand, hand.length);
+						handCopy[i] = starterCard;
+						averagePoints += Calculators.totalPoints(handCopy);
+					}
+				}
+				averagePoints = Math.round(100 * (averagePoints / 47)) / 100.0;
+				sb.append("\n" + valueToCard(droppedCard) + ": " + averagePoints);
+			}
+		}
+		System.out.println(sb.toString());
+	}
+	
 	private static String checkValidCard(String card) {
 		if (card.length() < 2 || card.length() > 3) {
 			return null;
@@ -134,31 +176,6 @@ final class UserInterface {
 		return rank + " of " + suit;
 	}
 
-	private String getAveragePoints() {
-		StringBuilder sb = new StringBuilder();
-		String[] handCopy;
-		
-		if (this.hand.length == 6) {
-			;
-		} else {
-			sb.append("Average points for each drop combination:");
-			for (int i = 0; i < hand.length; i++) {
-				double averagePoints = 0;
-				String droppedCard = this.hand[i];
-				for (String starterCard : this.cardPile) {
-					if (!this.containsCard(starterCard)) {
-						handCopy = Arrays.copyOf(hand, hand.length);
-						handCopy[i] = starterCard;
-						averagePoints += Calculators.totalPoints(handCopy);
-					}
-				}
-				averagePoints = Math.round(100*(averagePoints / 47)) / 100;
-				sb.append("\n" + valueToCard(droppedCard) + ": " + averagePoints);
-			}
-		}
-		return sb.toString();
-	}
-	
 	private boolean containsCard(String card) {
 		for (String s : this.hand) {
 			if (s.equals(card)) {
@@ -170,10 +187,7 @@ final class UserInterface {
 
 	public static void main(String[] args) {
 		UserInterface UI = new UserInterface();
-		UI.getUserInput();
-
-		// When checking for points, make sure the starter card isn't the same as
-		// any of the four cards in the hand
+		UI.run();
 	}
 
 }

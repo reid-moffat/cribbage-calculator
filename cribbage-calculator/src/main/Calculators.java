@@ -1,6 +1,3 @@
-/**
- * 
- */
 package main;
 
 import java.util.Arrays;
@@ -22,15 +19,22 @@ final class Calculators {
 	}
 
 	/**
-	 * Adds all of the point combinations together for a cribbage 5-hand and returns
+	 * Adds all of the point combinations together for a cribbage hand and returns
 	 * the total number of points
 	 * 
 	 * <p>
-	 * A cribbage 5-hand is the player's four cards plus the starter card at the end
-	 * of the array. See {@code isValidHand(String[])} for an explanation of valid
-	 * cribbage 4-hands
+	 * A cribbage hand is defined as a 1-dimensional array of five unique strings,
+	 * each representing a card in the player's hand and the last string being the
+	 * starter card. Each card is the value of the card (ace = 1, 2-10 = their
+	 * respective value, jack = 11, queen = 12, king = 13 [all face cards are worth
+	 * 10, but we need to distinguish between them for multiples and straights])
+	 * plus the first letter of the suit (not case sensitive)
 	 * 
-	 * @param hand a valid cribbage 5-hand
+	 * <p>
+	 * For example, {@code ["3H", "10S", "5S", "13C"]} represents a hand with a 3 of
+	 * hearts, 10 of spades, 5 of spades and King of clubs
+	 * 
+	 * @param hand a valid cribbage hand
 	 * @return the total number of points in this hand
 	 * @throws IllegalArgumentException if the hand doesn't have five cards
 	 */
@@ -50,103 +54,51 @@ final class Calculators {
 	}
 
 	/**
-	 * Checks if a cribbage 4-hand is valid
+	 * Returns the number of points obtained from fifteens in the given cribbage
+	 * hand
 	 * 
 	 * <p>
-	 * A cribbage 4-hand is defined as a 1-dimensional array of four unique strings,
-	 * each representing a card in the player's hand. Each card is the value of the
-	 * card (ace = 1, 2-10 = their respective value, jack = 11, queen = 12, king =
-	 * 13 [all face cards are worth 10, but we need to distinguish between them for
-	 * multiples and straights]) plus the first letter of the suit (not case
-	 * sensitive)
+	 * Each combination of cards that add up to 15 is worth two points
 	 * 
-	 * <p>
-	 * For example, {@code ["3H", "10S", "5S", "13C"]} represents a hand with a 3 of
-	 * hearts, 10 of spades, 5 of spades and King of clubs
-	 * 
-	 * @param hand a cribbage hand
-	 * @return true is the hand is valid, false if the hand is not valid
+	 * @param hand
+	 * @return
 	 */
-	public static boolean isValidHand(String[] hand) {
-		boolean illegalHand = false;
-
-		HashSet<String> uniqueCards = new HashSet<String>(Arrays.asList(hand));
-		if (hand.length != 4 || uniqueCards.size() != 4) {
-			return false;
-		}
-
-		try {
-			for (String s : hand) {
-				if (s.length() < 2 || s.length() > 3) {
-					illegalHand = true;
-					break;
-				}
-				char suit;
-				s.toUpperCase();
-				if (s.length() == 2) {
-					if ((int) s.charAt(0) < 49 || (int) s.charAt(0) > 57) {
-						illegalHand = true;
-						break;
-					}
-					suit = s.charAt(1);
-				} else {
-					if ((int) s.charAt(0) != 49 || (int) s.charAt(1) < 48 || (int) s.charAt(1) > 51) {
-						illegalHand = true;
-						break;
-					}
-					suit = s.charAt(2);
-				}
-				if (suit != 'C' && suit != 'D' && suit != 'H' && suit != 'S') {
-					illegalHand = true;
-					break;
-				}
-			}
-		} catch (Exception e) {
-			illegalHand = true;
-		}
-
-		if (illegalHand) {
-			return false;
-		}
-		return true;
-	}
-
-	private static int fifteens(String[] hand) {
+	public static int fifteens(String[] hand) {
 		int[] values = removeSuits(hand, false);
 		int[] valuesCopy = Arrays.copyOf(values, 5);
-		
+
 		int score = 0;
 		// Check if all five add up
 		score += checkFifteen(values);
-		
+
 		// Check if four add up
 		for (int i = 0; i < 5; i++) {
 			values[i] = 0;
 			score += checkFifteen(values);
 			values = Arrays.copyOf(valuesCopy, 5);
 		}
-		
+
 		// Check if three add up
 		for (int i = 0; i < 3; i++) {
 			for (int j = i + 1; j < 4; j++) {
 				for (int k = j + 1; k < 5; k++) {
-					int[] vals = {values[i], values[j], values[k]};
+					int[] vals = { values[i], values[j], values[k] };
 					score += checkFifteen(vals);
 				}
 			}
 		}
-		
+
 		// Check if two add up
 		for (int i = 0; i < 4; i++) {
 			for (int j = i + 1; j < 5; j++) {
-				int[] vals = {values[i], values[j]};
+				int[] vals = { values[i], values[j] };
 				score += checkFifteen(vals);
 			}
 		}
-		
+
 		return score;
 	}
-	
+
 	private static int checkFifteen(int[] values) {
 		int sum = 0;
 		for (int i : values) {
@@ -235,7 +187,7 @@ final class Calculators {
 			if (checkRun(uniques) == 0) {
 				return 0;
 			}
-			
+
 			/*
 			 * Since there is a run and three unique cards, there is either a triple or two
 			 * doubles. A triple run is three runs (9 points from runs) and a double double
@@ -314,11 +266,5 @@ final class Calculators {
 		}
 		Arrays.sort(values);
 		return values;
-	}
-
-	public static void main(String[] args) {
-		String[] hand = { "7D", "6H", "12S", "13C", "10H" };
-
-		System.out.println(totalPoints(hand));
 	}
 }
