@@ -42,6 +42,9 @@ final class UserInterface {
 		UserInterface UI = new UserInterface();
 		System.out.println(UI.cardPile.toString());
 		System.out.println(UI.cardPile.size());
+		
+		// When checking for points, make sure the starter card isn't the same as
+		// any of the four cards in the hand
 	}
 
 }
