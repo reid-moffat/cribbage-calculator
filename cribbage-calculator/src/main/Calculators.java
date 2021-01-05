@@ -185,16 +185,36 @@ final class Calculators {
 				score += checkRun(Arrays.copyOfRange(uniques, 1, 4));
 				score += checkRun(Arrays.copyOfRange(uniques, 2, 5));
 			}
+			return score;
 		} else if (maxLength == 4) {
 			score += 2 * checkRun(uniques);
 			if (score == 0) {
-				score += checkRun(Arrays.copyOfRange(uniques, 0, 2));
+				if (checkRun(Arrays.copyOfRange(uniques, 0, 3)) == 3) {
+					score = duplicates.get(uniques[3]) == 2 ? 3 : 6;
+				}
+				if (checkRun(Arrays.copyOfRange(uniques, 1, 4)) == 3) {
+					score = duplicates.get(uniques[0]) == 2 ? 3 : 6;
+				}
 			}
+			return score;
 		} else if (maxLength == 3) {
-			score += checkRun(uniques, duplicates);
+			if (checkRun(uniques) == 0) {
+				return 0;
+			}
+			
+			/*
+			 * Since there is a run and three unique cards, there is either a triple or two
+			 * doubles. A triple run is three runs (9 points from runs) and a double double
+			 * run is four runs (12 points from runs)
+			 */
+			for (Integer i : uniques) {
+				if (duplicates.get(i) == 3) {
+					return 9;
+				}
+			}
+			return 12;
 		}
-
-		return score;
+		return -100;
 	}
 
 	private static int checkRun(Integer[] values) {
@@ -263,10 +283,9 @@ final class Calculators {
 	}
 
 	public static void main(String[] args) {
-		String[] hand = { "6H", "5H", "11S", "1C", "5H" };
+		String[] hand = { "1H", "5H", "6S", "3C", "4H" };
 
-		Integer[] a = { 1, 3, 4, 5, 6 };
-		System.out.println(checkRun(a));
+		System.out.println(runs(hand));
 		/*
 		 * for (int i = 0; i < a.length; i++) { System.out.println(a[i]); }
 		 */
