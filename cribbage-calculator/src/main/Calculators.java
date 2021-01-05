@@ -4,13 +4,8 @@
 package main;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * A utility class that includes methods to calculate points from a cribbage
@@ -118,7 +113,46 @@ final class Calculators {
 
 	private static int fifteens(String[] hand) {
 		int[] values = removeSuits(hand, false);
-		return -1;
+		int[] valuesCopy = Arrays.copyOf(values, 5);
+		
+		int score = 0;
+		// Check if all five add up
+		score += checkFifteen(values);
+		
+		// Check if four add up
+		for (int i = 0; i < 5; i++) {
+			values[i] = 0;
+			score += checkFifteen(values);
+			values = Arrays.copyOf(valuesCopy, 5);
+		}
+		
+		// Check if three add up
+		for (int i = 0; i < 3; i++) {
+			for (int j = i + 1; j < 4; j++) {
+				for (int k = j + 1; k < 5; k++) {
+					int[] vals = {values[i], values[j], values[k]};
+					score += checkFifteen(vals);
+				}
+			}
+		}
+		
+		// Check if two add up
+		for (int i = 0; i < 4; i++) {
+			for (int j = i + 1; j < 5; j++) {
+				int[] vals = {values[i], values[j]};
+				score += checkFifteen(vals);
+			}
+		}
+		
+		return score;
+	}
+	
+	private static int checkFifteen(int[] values) {
+		int sum = 0;
+		for (int i : values) {
+			sum += i;
+		}
+		return sum == 15 ? 2 : 0;
 	}
 
 	private static int multiples(String[] hand) {
@@ -214,7 +248,7 @@ final class Calculators {
 			}
 			return 12;
 		}
-		return -100;
+		return 0; // A triple and double or quad and single won't have a run
 	}
 
 	private static int checkRun(Integer[] values) {
@@ -283,11 +317,8 @@ final class Calculators {
 	}
 
 	public static void main(String[] args) {
-		String[] hand = { "1H", "5H", "6S", "3C", "4H" };
+		String[] hand = { "7D", "6H", "12S", "13C", "10H" };
 
-		System.out.println(runs(hand));
-		/*
-		 * for (int i = 0; i < a.length; i++) { System.out.println(a[i]); }
-		 */
+		System.out.println(totalPoints(hand));
 	}
 }
