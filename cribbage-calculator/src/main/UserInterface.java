@@ -1,5 +1,6 @@
 /**
- * 
+ * main includes a user interface and calculator class for getting user input
+ * and calculating the optimal strategies
  */
 package main;
 
@@ -9,28 +10,54 @@ import java.util.HashSet;
 import java.util.Scanner;
 
 /**
+ * UI for a cribbage calculator
+ * 
+ * <p>
+ * Used to get user input from the console for a cribbage hand, and use the
+ * class {@code Calculators} to determine the optimal strategies for dropping
+ * cards
+ * 
  * @author Reid Moffat
- *
  */
 final class UserInterface {
 
-	/*
+	/**
 	 * Stores a string representation of all cards in a standard 52-card deck
 	 * 
+	 * <p>
 	 * Each card is represented by its value (ace = 1, 2-10 = their respective
 	 * value, jack = 11, queen = 12, king = 13) followed by the suit (C, D, H or S).
 	 * For example, '13S' is the king of spades and '5H' is the king of hearts
 	 */
 	private HashSet<String> cardPile;
 
+	/**
+	 * Stores am array representation of the player's cribbage hand
+	 * 
+	 * <p>
+	 * Each element of this array is the string representation of a valid playing
+	 * card
+	 */
 	private String[] hand;
-	
+
+	/**
+	 * Used for getting user input from the console
+	 */
 	private Scanner in;
-	
+
+	/**
+	 * A string that gives a short introduction to the program and asks the user to
+	 * input the number of players in the cribbage game (for determining the number
+	 * of starting cards)
+	 */
 	private static final String ENTER_PLAYERS = "Cribbage Calculator\n" +
 												"Created by Reid Moffat\n\n" +  
 			                                    "How many players (2-4)?";
-	
+
+	/**
+	 * A string that explains how to properly enter card values, gives some examples
+	 * and prompts the user to enter their cards into the console
+	 */
 	private static final String ENTER_CARDS = "\nEach card must be its value (from 1 to 13) plus the suit\n" +
 											  "Examples:\n" +
 											  "'1D': Ace of diamonds\n" +
@@ -39,12 +66,19 @@ final class UserInterface {
 											  "'13H': King of hearts\n" +
 											  "Enter each of the cards in your hand one by one below:\n";
 
+	/**
+	 * Initializes the required fields
+	 */
 	public UserInterface() {
 		this.cardPile = new HashSet<String>();
 		this.initialzeDeck();
 		this.in = new Scanner(System.in);
 	}
 
+	/**
+	 * Creates a string representation for each playing card in a standard 52-card
+	 * deck and stores all the values in a set
+	 */
 	private void initialzeDeck() {
 		final char[] suits = { 'C', 'D', 'H', 'S' };
 		for (int value = 1; value < 14; value++) {
@@ -65,6 +99,16 @@ final class UserInterface {
 		this.printAveragePoints();
 	}
 
+	/**
+	 * Introduces the program and prompts the user to enter the number of cribbage
+	 * players in the console
+	 * 
+	 * <p>
+	 * Loops until a valid number of players is inputed (2-4), then calculates and
+	 * returns the number of starting cards associated with that number of players
+	 * 
+	 * @return the number of starting cards for the given number of players
+	 */
 	private int getNumCards() {
 		System.out.println(UserInterface.ENTER_PLAYERS);
 
@@ -80,6 +124,12 @@ final class UserInterface {
 		return numCards;
 	}
 
+	/**
+	 * Prompts the user to enter the valid playing cards in their hand and stores
+	 * their values
+	 * 
+	 * @param numCards the number of cards to be inputed
+	 */
 	private void getCards(int numCards) {
 		System.out.println(UserInterface.ENTER_CARDS);
 
@@ -107,6 +157,14 @@ final class UserInterface {
 		this.in.close();
 	}
 
+	/**
+	 * Calculates the average points obtained from a cribbage for each combination
+	 * of cards to be dropped and prints out the value
+	 * 
+	 * <p>
+	 * The average number of points takes into account the number of points gained
+	 * from each possible starter card to be flipped up
+	 */
 	private void printAveragePoints() {
 		StringBuilder sb = new StringBuilder();
 		String[] handCopy = new String[5];
@@ -116,7 +174,7 @@ final class UserInterface {
 			for (int i = 0; i < hand.length - 1; i++) {
 				for (int j = i + 1; j < hand.length; j++) {
 					double averagePoints = 0;
-					handCopy = removeCard(this.hand, j);
+					handCopy = removeCard(j);
 					String droppedCard1 = this.hand[i];
 					String droppedCard2 = this.hand[j];
 					for (String starterCard : this.cardPile) {
@@ -125,7 +183,7 @@ final class UserInterface {
 							averagePoints += Calculators.totalPoints(handCopy);
 						}
 					}
-					averagePoints = Math.round(100 * (averagePoints / 47)) / 100.0;
+					averagePoints = Math.round(100 * (averagePoints / 46)) / 100.0;
 					sb.append("\n" + valueToCard(droppedCard1) + " and ");
 					sb.append(valueToCard(droppedCard2) + ": " + averagePoints);
 				}
@@ -148,7 +206,15 @@ final class UserInterface {
 		}
 		System.out.println(sb.toString());
 	}
-	
+
+	/**
+	 * Checks if a string represents a valid playing card (value + suit), returns
+	 * the English representation of the card if it does
+	 * 
+	 * @param card a string that may represent a valid playing card
+	 * @return null if the string is not a valid card, the English representation of
+	 *         the card if it is valid
+	 */
 	private static String checkValidCard(String card) {
 		if (card.length() < 2 || card.length() > 3) {
 			return null;
@@ -178,6 +244,18 @@ final class UserInterface {
 		return valueToCard(card);
 	}
 
+	/**
+	 * Returns the English representation of a valid playing card's string
+	 * representation
+	 * 
+	 * <p>
+	 * For example, "13H" would return "King of hearts" and "1D" would return "Ace
+	 * of diamonds"
+	 * 
+	 * @param card a valid playing card's string representation
+	 * @return the English representation of a valid playing card's string
+	 *         representation
+	 */
 	private static String valueToCard(String card) {
 		final String[] ranks = { "Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack",
 				"Queen", "King" };
@@ -192,18 +270,31 @@ final class UserInterface {
 		String suit = suits.get(card.charAt(card.length() - 1));
 		return rank + " of " + suit;
 	}
-	
-	private static String[] removeCard(String[] cards, int index) {
-		String[] copy = new String[cards.length - 1];
-		for (int i = 0, j = 0; i < cards.length; i++) {
+
+	/**
+	 * Returns an array of cards without the specified card from the player hand
+	 * 
+	 * @param index the index of the card to be removed
+	 * @return an array of cards without the specified card from the player hand
+	 */
+	private String[] removeCard(int index) {
+		String[] copy = new String[this.hand.length - 1];
+		for (int i = 0, j = 0; i < this.hand.length; i++) {
 			if (i != index) {
-				copy[j] = cards[i];
+				copy[j] = this.hand[i];
 				j++;
 			}
 		}
 		return copy;
 	}
 
+	/**
+	 * Checks if the player's hand (before dropping cards) contains the specified
+	 * card
+	 * 
+	 * @param card the card to check
+	 * @return true if the card is in the player's hand, false otherwise
+	 */
 	private boolean containsCard(String card) {
 		for (String s : this.hand) {
 			if (s.equals(card)) {

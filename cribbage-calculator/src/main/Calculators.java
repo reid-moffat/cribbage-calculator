@@ -1,3 +1,7 @@
+/**
+ * main includes a user interface and calculator class for getting user input
+ * and calculating the optimal strategies
+ */
 package main;
 
 import java.util.Arrays;
@@ -12,7 +16,7 @@ import java.util.HashSet;
  */
 final class Calculators {
 
-	/*
+	/**
 	 * Calculators is a utility class, a private constructor prevents instantiation
 	 */
 	private Calculators() {
