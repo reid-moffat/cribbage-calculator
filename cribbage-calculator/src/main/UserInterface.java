@@ -109,10 +109,27 @@ final class UserInterface {
 
 	private void printAveragePoints() {
 		StringBuilder sb = new StringBuilder();
-		String[] handCopy;
+		String[] handCopy = new String[5];
 
 		if (this.hand.length == 6) {
-			;
+			sb.append("Average points for each drop combination:");
+			for (int i = 0; i < hand.length - 1; i++) {
+				for (int j = i + 1; j < hand.length; j++) {
+					double averagePoints = 0;
+					handCopy = removeCard(this.hand, j);
+					String droppedCard1 = this.hand[i];
+					String droppedCard2 = this.hand[j];
+					for (String starterCard : this.cardPile) {
+						if (!this.containsCard(starterCard)) {
+							handCopy[i] = starterCard;
+							averagePoints += Calculators.totalPoints(handCopy);
+						}
+					}
+					averagePoints = Math.round(100 * (averagePoints / 47)) / 100.0;
+					sb.append("\n" + valueToCard(droppedCard1) + " and ");
+					sb.append(valueToCard(droppedCard2) + ": " + averagePoints);
+				}
+			}
 		} else {
 			sb.append("Average points for each drop combination:");
 			for (int i = 0; i < hand.length; i++) {
@@ -174,6 +191,17 @@ final class UserInterface {
 		String rank = ranks[value - 1];
 		String suit = suits.get(card.charAt(card.length() - 1));
 		return rank + " of " + suit;
+	}
+	
+	private static String[] removeCard(String[] cards, int index) {
+		String[] copy = new String[cards.length - 1];
+		for (int i = 0, j = 0; i < cards.length; i++) {
+			if (i != index) {
+				copy[j] = cards[i];
+				j++;
+			}
+		}
+		return copy;
 	}
 
 	private boolean containsCard(String card) {
