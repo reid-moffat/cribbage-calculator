@@ -29,68 +29,136 @@ package card;
 enum Rank {
 
 	/**
-	 * A
+	 * The rank ace
+	 * 
+	 * <p>
+	 * Aces have a value of 1 in cribbage
 	 */
 	ACE,
 
 	/**
+	 * The rank two
 	 * 
+	 * <p>
+	 * Twos have a value of 2 in cribbage
 	 */
 	TWO,
 
 	/**
+	 * The rank three
 	 * 
+	 * <p>
+	 * Threes have a value of 3 in cribbage
 	 */
 	THREE,
 
 	/**
+	 * The rank four
 	 * 
+	 * <p>
+	 * Fours have a value of 4 in cribbage
 	 */
 	FOUR,
 
 	/**
+	 * The rank five
 	 * 
+	 * <p>
+	 * Fives have a value of 5 in cribbage
 	 */
 	FIVE,
 
 	/**
+	 * The rank six
 	 * 
+	 * <p>
+	 * Sixes have a value of 6 in cribbage
 	 */
 	SIX,
 
 	/**
+	 * The rank seven
 	 * 
+	 * <p>
+	 * Sevens have a value of 7 in cribbage
 	 */
 	SEVEN,
 
 	/**
+	 * The rank eight
 	 * 
+	 * <p>
+	 * Eights have a value of 8 in cribbage
 	 */
 	EIGHT,
 
 	/**
+	 * The rank nine
 	 * 
+	 * <p>
+	 * Nines have a value of 9 in cribbage
 	 */
 	NINE,
 
 	/**
+	 * The rank ten
 	 * 
+	 * <p>
+	 * Tens have a value of 10 in cribbage
 	 */
 	TEN,
 
 	/**
+	 * The rank jack
 	 * 
+	 * <p>
+	 * Jacks have a value of 10 in cribbage
 	 */
 	JACK,
 
 	/**
+	 * The rank queen
 	 * 
+	 * <p>
+	 * Queens have a value of 10 in cribbage
 	 */
 	QUEEN,
 
 	/**
+	 * The rank king
 	 * 
+	 * <p>
+	 * Kings have a value of 10 in cribbage
 	 */
-	KING
+	KING;
+
+	/**
+	 * Returns the cribbage value of the rank (aces = 1, face cards = 10)
+	 * 
+	 * @return the cribbage value of the rank
+	 */
+	int getValue() {
+		int value = this.ordinal() + 1;
+		return value > 10 ? 10 : value;
+	}
+
+	/**
+	 * Returns the rank place (starting at 1) of the rank
+	 * 
+	 * <p>
+	 * Unlike getValue(), face cards are given distinct values instead of 10 in
+	 * order to differentiate between them for runs
+	 * 
+	 * <ul>
+	 * <li><code>Jack: 11</code></li>
+	 * <li><code>Queen: 12</code></li>
+	 * <li><code>King: 13</code></li>
+	 * </ul>
+	 * 
+	 * @return the rank place of the rank
+	 */
+	int getRankValue() {
+		return this.ordinal() + 1;
+	}
 
 }

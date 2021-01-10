@@ -75,7 +75,7 @@ final class Calculators {
 	 * @return the number of points obtained from fifteens
 	 */
 	public static int fifteens(String[] hand) {
-		int[] values = removeSuits(hand, false);
+		final int[] values = removeSuits(hand, false);
 		int[] valuesCopy = Arrays.copyOf(values, 5);
 
 		int score = 0;
@@ -84,9 +84,9 @@ final class Calculators {
 
 		// Check if four add up
 		for (int i = 0; i < 5; i++) {
-			values[i] = 0;
+			valuesCopy[i] = 0;
 			score += isFifteen(values);
-			values = Arrays.copyOf(valuesCopy, 5);
+			valuesCopy = Arrays.copyOf(valuesCopy, 5);
 		}
 
 		// Check if three add up
