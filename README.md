@@ -6,7 +6,7 @@ There are many simple strategies that can be picked up and applied pretty quick 
 
 There are many calculators online that can find the points in a given hand and some that will even give advice on how to play, but I want to go beyond this and create a program that will:
 * Take a starting cribbage hand as input
-* Caculate the average number of points obtained from each combination of card(s) dropped
+* Calculate the average number of points obtained from each combination of card(s) dropped
 * Advise the user on other strategies they should take into account beyond just average points
 
 This project is currently still in development. Once completed, I plan on creating a public website with a simple GUI
