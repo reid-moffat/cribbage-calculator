@@ -5,10 +5,10 @@ package main;
  * lowest to highest value using alphabetical order:
  * 
  * <ul>
- * 	<li>{@code CLUBS}
- * 	<li>{@code DIAMONDS}
- * 	<li>{@code HEARTS}
- * 	<li>{@code SPADES}
+ * 	<li></code>CLUBS<code>
+ * 	<li></code>DIAMONDS<code>
+ * 	<li></code>HEARTS<code>
+ * 	<li></code>SPADES<code>
  * <ul>
  * 
  */
