@@ -39,29 +39,6 @@ public final class Card implements Comparable<Card> {
 	}
 
 	/**
-	 * Checks if all the values of the supplied card arguments add up to 15
-	 * 
-	 * @param cards a variable amount of card objects
-	 * @return true if the card values add up to 15, false if not
-	 * @throws IllegalArgumentException if 0, 1 or more than 5 card arguments are
-	 *                                  supplied
-	 */
-	public static boolean isFifteen(Card... cards) {
-		if (cards.length < 2) {
-			throw new IllegalArgumentException("you must supply at least two card arguments");
-		}
-		if (cards.length > 5) {
-			throw new IllegalArgumentException("you cannot have more than five cards");
-		}
-
-		int sum = 0;
-		for (Card c : cards) {
-			sum += c.getValue();
-		}
-		return sum == 15;
-	}
-
-	/**
 	 * Returns the number of ranks the current card is above the other card
 	 * 
 	 * <p>
@@ -77,7 +54,7 @@ public final class Card implements Comparable<Card> {
 	 */
 	@Override
 	public int compareTo(Card other) {
-		return this.getRankValue() - other.getRankValue();
+		return this.getRankNumber() - other.getRankNumber();
 	}
 
 	/**
@@ -85,7 +62,7 @@ public final class Card implements Comparable<Card> {
 	 * 
 	 * @return this card's rank
 	 */
-	private Rank getRank() {
+	public Rank getRank() {
 		return this.rank;
 	}
 
@@ -94,7 +71,7 @@ public final class Card implements Comparable<Card> {
 	 * 
 	 * @return this card's suit
 	 */
-	private Suit getSuit() {
+	public Suit getSuit() {
 		return this.suit;
 	}
 
@@ -103,7 +80,7 @@ public final class Card implements Comparable<Card> {
 	 * 
 	 * @return the cribbage value of this card
 	 */
-	private int getValue() {
+	public int getValue() {
 		return this.rank.getValue();
 	}
 
@@ -123,8 +100,8 @@ public final class Card implements Comparable<Card> {
 	 * 
 	 * @return the rank place of this card
 	 */
-	public int getRankValue() {
-		return this.rank.getRankValue();
+	public int getRankNumber() {
+		return this.rank.getRankNumber();
 	}
 
 }

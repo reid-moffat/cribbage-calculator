@@ -157,7 +157,7 @@ enum Rank {
 	 * 
 	 * @return the rank place of the rank
 	 */
-	int getRankValue() {
+	int getRankNumber() {
 		return this.ordinal() + 1;
 	}
 
