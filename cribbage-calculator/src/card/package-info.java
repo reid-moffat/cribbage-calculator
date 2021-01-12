@@ -1,6 +1,6 @@
 /**
  * Contains files for a card class designed to represent a card in a standard
- * 52-card playing card deck
+ * 52-card playing card deck and various methods for cribbage calculations
  * 
  * <p>
  * The card class is designed for cribbage and may not include all desired
