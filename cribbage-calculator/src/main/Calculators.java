@@ -99,7 +99,6 @@ final class Calculators {
 	 * @return the number of points obtained from fifteens
 	 */
 	public static int fifteens(HashSet<Card> cards) {
-		HashSet<Card> copy = new HashSet<Card>(cards);
 		int score = 0;
 
 		/* Check if all five add up */
@@ -110,25 +109,11 @@ final class Calculators {
 			score += isFifteen(removeCards(cards, c));
 		}
 
-		/* Check if three add up */
-		HashSet<Card> remainingCards = new HashSet<Card>(cards);
-		for (Card card1 : cards) {
-			copy = removeCards(cards, card1);
-			remainingCards.remove(card1);
-			for (Card card2 : remainingCards) {
-				score += isFifteen(removeCards(copy, card2));
-			}
-		}
-
-		/* Check if two add up */
-		remainingCards = new HashSet<Card>(cards);
-		for (Card card1 : cards) {
-			copy = removeCards(copy, card1);
-			remainingCards.remove(card1);
-			for (Card card2 : remainingCards) {
-				HashSet<Card> vals = new HashSet<Card>(Arrays.asList(card1, card2));
-				score += isFifteen(vals);
-			}
+		/* Check if three or two add up */
+		HashSet<Card[]> combinationsOf2 = subset2(cards);
+		for (Card[] combination : combinationsOf2) {
+			score += isFifteen(removeCards(cards, combination)); // 3 cards
+			score += isFifteen(new HashSet<Card>(Arrays.asList(combination))); // 2 cards
 		}
 
 		return score;
@@ -165,8 +150,7 @@ final class Calculators {
 	 * @return the number of points obtained from multiples
 	 */
 	public static int multiples(HashSet<Card> cards) {
-		HashMap<Integer, Integer> values = countDuplicates(cards);
-		return values.values().stream().mapToInt(v -> v * v - v).sum();
+		return countDuplicates(cards).values().stream().mapToInt(v -> v * v - v).sum();
 	}
 
 	/**
@@ -306,7 +290,7 @@ final class Calculators {
 	}
 
 	/**
-	 * Removes cards from a HashSet
+	 * Returns a new HashSet without the specified cards
 	 * 
 	 * <p>
 	 * Cards that are not in the set are ignored
@@ -358,6 +342,19 @@ final class Calculators {
 			String errMsg = "between " + min + " and " + max + " cards must be supplied";
 			throw new IllegalArgumentException(errMsg);
 		}
+	}
+
+	public static HashSet<Card[]> subset2(HashSet<Card> cards) {
+		HashSet<Card[]> subsets = new HashSet<Card[]>();
+		HashSet<Card> remaining = new HashSet<Card>(cards);
+		for (Card card1 : cards) {
+			remaining.remove(card1);
+			for (Card card2 : remaining) {
+				Card[] temp = { card1, card2 };
+				subsets.add(temp);
+			}
+		}
+		return subsets;
 	}
 
 }
