@@ -26,7 +26,7 @@ package card;
  * a five; but they cannot make a pair
  *
  */
-enum Rank {
+public enum Rank {
 
 	/**
 	 * The rank ace

@@ -11,7 +11,7 @@ package card;
  * </ul>
  * 
  */
-enum Suit {
+public enum Suit {
 	/**
 	 * The suit clubs
 	 */

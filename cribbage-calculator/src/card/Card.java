@@ -1,5 +1,7 @@
 package card;
 
+import java.util.Objects;
+
 /**
  * A class that represents cards in the standard 52-card playing card deck
  * 
@@ -18,6 +20,16 @@ package card;
 public final class Card implements Comparable<Card> {
 
 	/**
+	 * An array of all card ranks in order
+	 */
+	public static final Rank[] RANKS = Rank.values();
+
+	/**
+	 * An array of all card suits in alphabetical order
+	 */
+	public static final Suit[] SUITS = Suit.values();
+
+	/**
 	 * This card's rank (ACE, TWO, THREE, ..., QUEEN, KING)
 	 */
 	private Rank rank;
@@ -28,12 +40,29 @@ public final class Card implements Comparable<Card> {
 	private Suit suit;
 
 	/**
-	 * Initializes the card wit a rank and suit
+	 * Creates an 'empty' card object, without a rank or suit
+	 */
+	public Card() {
+	}
+
+	/**
+	 * Initializes the card with a rank and suit
 	 * 
 	 * @param rank the card's rank
 	 * @param suit the card's suit
 	 */
 	public Card(Rank rank, Suit suit) {
+		this.rank = rank;
+		this.suit = suit;
+	}
+
+	/**
+	 * Sets the rank and suit of this card
+	 * 
+	 * @param rank the card's new rank
+	 * @param suit the card's new suit
+	 */
+	public void setState(Rank rank, Suit suit) {
 		this.rank = rank;
 		this.suit = suit;
 	}
@@ -58,7 +87,11 @@ public final class Card implements Comparable<Card> {
 	}
 
 	/**
-	 * Returns this card's rank (not the same as value)
+	 * Returns this card's rank
+	 * 
+	 * <p>
+	 * Rank is not the same as value, a Jack of hearts has the rank jack and a value
+	 * of 10 for example
 	 * 
 	 * @return this card's rank
 	 */
@@ -77,6 +110,9 @@ public final class Card implements Comparable<Card> {
 
 	/**
 	 * Returns the cribbage value of this card
+	 * 
+	 * <p>
+	 * Used to calculate fifteens
 	 * 
 	 * @return the cribbage value of this card
 	 */
@@ -98,10 +134,49 @@ public final class Card implements Comparable<Card> {
 	 * <li>King: 13</li>
 	 * </ul>
 	 * 
+	 * <p>
+	 * Used to check for runs and multiples
+	 * 
 	 * @return the rank place of this card
 	 */
 	public int getRankNumber() {
 		return this.rank.getRankNumber();
+	}
+
+	/**
+	 * 
+	 */
+	@Override
+	public int hashCode() {
+		return Objects.hash(rank, suit);
+	}
+
+	/**
+	 * Returns true if both cards have the same rank and suit
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof Card)) {
+			return false;
+		}
+		Card other = (Card) obj;
+		return rank == other.rank && suit == other.suit;
+	}
+
+	/**
+	 * Returns the a string with the English meaning of a card
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		String rankString = rank.toString();
+		sb.append(rankString.substring(0, 1));
+		sb.append(rankString.substring(1, rankString.length()).toLowerCase());
+		sb.append(" of " + suit.toString().toLowerCase());
+		return sb.toString();
 	}
 
 }

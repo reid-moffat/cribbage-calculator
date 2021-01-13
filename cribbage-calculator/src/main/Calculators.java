@@ -1,12 +1,13 @@
-/**
- * main includes a user interface and calculator class for getting user input
- * and calculating the optimal strategies
- */
 package main;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.stream.Collectors;
+
+import card.Card;
+import card.Rank;
+import card.Suit;
 
 /**
  * The utility class {@code Calculators} contains methods for calculating the
@@ -43,19 +44,41 @@ final class Calculators {
 	 * @return the total number of points in this hand
 	 * @throws IllegalArgumentException if the hand doesn't have five cards
 	 */
-	public static int totalPoints(String[] hand) {
-		if (hand.length != 5) {
-			String errMsg = "hand must five cards, four from the player and one starter card";
-			throw new IllegalArgumentException(errMsg);
+	public static int totalPoints(Card[] hand, Card starter) {
+		if (!legalHand(hand, starter)) {
+			throw new IllegalArgumentException("illegal hand and/or starter card");
 		}
+		Card[] fullHand = addStarter(hand, starter);
 
 		int points = 0;
-		points += fifteens(hand);
-		points += multiples(hand);
-		points += runs(hand);
-		points += flushes(hand);
-		points += nobs(hand);
+		points += fifteens(fullHand);
+		points += multiples(fullHand);
+		points += runs(fullHand);
+		points += flushes(hand, starter);
+		points += nobs(hand, starter);
 		return points;
+	}
+
+	/**
+	 * Returns true if the hand and starter are valid for a cribbage hand
+	 * 
+	 * <p>
+	 * To be valid, hand and starter must not be null references and hand must have
+	 * four card objects
+	 * 
+	 * @param hand    an array of card objects
+	 * @param starter a card object
+	 * @return true if the hand and starter are valid for a cribbage hand, false
+	 *         otherwise
+	 */
+	private static boolean legalHand(Card[] hand, Card starter) {
+		if (hand == null || starter == null) {
+			return false;
+		}
+		if (hand.length != 4) {
+			return false;
+		}
+		return true;
 	}
 
 	/**
@@ -74,35 +97,28 @@ final class Calculators {
 	 * @param hand a valid cribbage hand
 	 * @return the number of points obtained from fifteens
 	 */
-	public static int fifteens(String[] hand) {
-		final int[] values = removeSuits(hand, false);
-		int[] valuesCopy = Arrays.copyOf(values, 5);
-
+	public static int fifteens(Card[] cards) {
 		int score = 0;
-		// Check if all five add up
-		score += isFifteen(values);
 
-		// Check if four add up
+		/* Check if all five add up */
+		score += isFifteen(cards);
+
+		/* Check if four add up */
 		for (int i = 0; i < 5; i++) {
-			valuesCopy[i] = 0;
-			score += isFifteen(values);
-			valuesCopy = Arrays.copyOf(valuesCopy, 5);
+			score += isFifteen(removeCards(cards, i));
 		}
 
-		// Check if three add up
-		for (int i = 0; i < 3; i++) {
-			for (int j = i + 1; j < 4; j++) {
-				for (int k = j + 1; k < 5; k++) {
-					int[] vals = { values[i], values[j], values[k] };
-					score += isFifteen(vals);
-				}
+		/* Check if three add up */
+		for (int i = 0; i < 4; i++) {
+			for (int j = i + 1; j < 5; j++) {
+				score += isFifteen(removeCards(cards, i, j));
 			}
 		}
 
-		// Check if two add up
+		/* Check if two add up */
 		for (int i = 0; i < 4; i++) {
 			for (int j = i + 1; j < 5; j++) {
-				int[] vals = { values[i], values[j] };
+				Card[] vals = { cards[i], cards[j] };
 				score += isFifteen(vals);
 			}
 		}
@@ -111,16 +127,24 @@ final class Calculators {
 	}
 
 	/**
-	 * Checks if the values in the array add up to 15; returning 2 if they do and 0
-	 * if they do not
+	 * Checks if all the values of the supplied card arguments add up to 15
 	 * 
-	 * @param values an array of integers
-	 * @return 2 if the sum of all values is 15, 0 if not
+	 * @param cards an array card objects
+	 * @return 2 if the card values add up to 15, 0 if not
+	 * @throws IllegalArgumentException if the array of cards has 0, 1 or more than
+	 *                                  5 cards
 	 */
-	private static int isFifteen(int[] values) {
+	private static int isFifteen(Card[] cards) {
+		if (cards.length < 2) {
+			throw new IllegalArgumentException("you must supply at least two card arguments");
+		}
+		if (cards.length > 5) {
+			throw new IllegalArgumentException("you cannot have more than five cards");
+		}
+
 		int sum = 0;
-		for (int i : values) {
-			sum += i;
+		for (Card c : cards) {
+			sum += c.getValue();
 		}
 		return sum == 15 ? 2 : 0;
 	}
@@ -130,7 +154,7 @@ final class Calculators {
 	 * hand
 	 * 
 	 * <p>
-	 * Multiples are a double (2 points), triple (3 points) or quadruple (12 points)
+	 * Multiples are a double (2 points), triple (6 points) or quadruple (12 points)
 	 * of one value of card. Face cards are not considered the same for multiples; a
 	 * ten and a queen both have a value of 10 but they would not give points for a
 	 * double
@@ -142,18 +166,8 @@ final class Calculators {
 	 * @param hand a valid cribbage hand
 	 * @return the number of points obtained from multiples
 	 */
-	public static int multiples(String[] hand) {
-		HashMap<Integer, Integer> values = new HashMap<Integer, Integer>();
-
-		int[] cardValues = removeSuits(hand, true);
-		for (int i : cardValues) {
-			Integer key = Integer.valueOf(i);
-			if (values.containsKey(key)) {
-				values.replace(key, Integer.valueOf(values.get(key) + 1));
-			} else {
-				values.put(key, Integer.valueOf(1));
-			}
-		}
+	public static int multiples(Card[] cards) {
+		HashMap<Integer, Integer> values = countDuplicates(cards);
 
 		int score = 0;
 		for (Integer amount : values.values()) {
@@ -184,23 +198,13 @@ final class Calculators {
 	 * @param hand a valid cribbage hand
 	 * @return the number of points obtained from runs
 	 */
-	public static int runs(String[] hand) {
-		/* An array of Integers which represent the values of each card in the hand */
-		Integer[] values = Arrays.stream(removeSuits(hand, true)).boxed().toArray(Integer[]::new);
+	public static int runs(Card[] cards) {
+		/* The number of occurrences for each card rank number */
+		HashMap<Integer, Integer> duplicates = countDuplicates(cards);
 
-		/* The number of occurrences for each card value */
-		HashMap<Integer, Integer> duplicates = new HashMap<Integer, Integer>();
-		for (Integer i : values) {
-			if (duplicates.containsKey(i)) {
-				Integer oldAmount = duplicates.get(i);
-				duplicates.replace(i, Integer.valueOf(oldAmount + 1));
-			} else {
-				duplicates.put(i, Integer.valueOf(1));
-			}
-		}
-
-		/* All unique card values */
-		Integer[] uniques = new HashSet<>(Arrays.asList(values)).toArray(new Integer[] {});
+		/* All unique card rank numbers */
+		Integer[] uniques = Arrays.copyOf(duplicates.values().toArray(), duplicates.size(), Integer[].class);
+		Arrays.sort(uniques);
 
 		/* Maximum length of a run */
 		int maxLength = uniques.length;
@@ -250,12 +254,22 @@ final class Calculators {
 	}
 
 	/**
-	 * Returns the number of points obtained from a flush for the given values
+	 * Checks if the supplied cards are consecutive to form a run
 	 * 
-	 * @param values an array of Integers
-	 * @return 0 if it is not a run, 3-5 for a run of 3-5 respectively
+	 * @param values a list of card values
+	 * @return 0 if the cards don't form a run, the length of the run (3-5) if the
+	 *         cards do form a run
+	 * @throws IllegalArgumentException if the array of cards has 0, 1 or more than
+	 *                                  5 cards
 	 */
 	private static int isRun(Integer[] values) {
+		if (values.length < 2) {
+			throw new IllegalArgumentException("you must supply at least two card arguments");
+		}
+		if (values.length > 5) {
+			throw new IllegalArgumentException("you cannot have more than five cards");
+		}
+
 		int startValue = values[0];
 		for (int i = 1; i < values.length; i++) {
 			if (values[i] != startValue + i) {
@@ -281,20 +295,10 @@ final class Calculators {
 	 * @param hand a valid cribbage hand
 	 * @return the number of points obtained from flushes
 	 */
-	public static int flushes(String[] hand) {
-		HashSet<Character> uniqueSuits = new HashSet<Character>();
-		for (int i = 0; i < 4; i++) {
-			uniqueSuits.add(hand[i].charAt(hand[i].length() - 1));
-		}
-
-		if (uniqueSuits.size() == 1) {
-			uniqueSuits.add(hand[4].charAt(hand[4].length() - 1));
-			if (uniqueSuits.size() == 1) {
-				return 5;
-			}
-			return 4;
-		}
-		return 0;
+	public static int flushes(Card[] hand, Card starter) {
+		HashSet<Suit> uniqueSuits = new HashSet<Suit>(
+				Arrays.asList(hand).stream().map(card -> card.getSuit()).collect(Collectors.toSet()));
+		return uniqueSuits.size() == 1 ? 4 + (uniqueSuits.add(starter.getSuit()) == false ? 1 : 0) : 0;
 	}
 
 	/**
@@ -304,55 +308,85 @@ final class Calculators {
 	 * One point is obtained from nobs if the player's hand has a jack of the same
 	 * suit as the starter card
 	 * 
-	 * <p>
-	 * For example, {@code ["3H", "11S", "5S", "13C", "2S"]} has one point from nobs
-	 * because the jack in the player's hand has the same suit (spades) ad the
-	 * starter card
-	 * 
-	 * @param hand a valid cribbage hand
+	 * @param hand    a valid cribbage hand
+	 * @param starter the starter card
 	 * @return the number of points obtained from nobs
 	 */
-	public static int nobs(String[] hand) {
-		/* If there are any jacks in the player's hand, store their suits */
-		char[] suits = new char[4];
-		for (int i = 0; i < suits.length; i++) {
-			if (hand[i].charAt(0) == '1' && hand[i].charAt(1) == '1') {
-				suits[i] = hand[i].charAt(2);
-			}
-		}
-
-		/* Check if any of the jack's suits match the suit of the last card */
-		char starterSuit = hand[4].charAt(hand[4].length() - 1);
-		if (starterSuit == suits[0] || starterSuit == suits[1] || starterSuit == suits[2] || starterSuit == suits[3]) {
-			return 1;
-		}
-		return 0;
+	public static int nobs(Card[] hand, Card starter) {
+		HashSet<Suit> jackSuits = new HashSet<Suit>(Arrays.asList(hand).stream().filter(c -> c.getRank() == Rank.JACK)
+				.map(c -> c.getSuit()).collect(Collectors.toSet()));
+		return jackSuits.contains(starter.getSuit()) ? 1 : 0;
 	}
 
 	/**
-	 * Turns a cribbage hand into a sorted array of each card's int value
-	 *
-	 * @param hand a valid cribbage hand
-	 * @param trueValues false if all face cards should be given the value 10 (for
-	 *                   fifteens), true for face cards to keep their 'value' (11,
-	 *                   12 and 13 for jack, queen, king respectively)
-	 * @return a sorted array of the card values
+	 * 
+	 * 
+	 * @param hand
+	 * @param starter
+	 * @return
 	 */
-	private static int[] removeSuits(String[] hand, boolean trueValues) {
-		int[] values = new int[5];
-		for (int i = 0; i < hand.length; i++) {
-			String card = hand[i];
-			if (card.length() == 3) {
-				if (trueValues) {
-					values[i] = 10 + card.charAt(1) - '0';
-				} else {
-					values[i] = 10;
-				}
-			} else {
-				values[i] = card.charAt(0) - '0';
+	private static Card[] addStarter(Card[] hand, Card starter) {
+		Card[] arr = new Card[5];
+		for (int i = 0; i < 4; i++) {
+			arr[i] = hand[i];
+		}
+		arr[4] = starter;
+		return arr;
+	}
+
+	/**
+	 * Returns an array of cards without the specified card from the player hand
+	 * 
+	 * @param index the index of the card to be removed
+	 * @return an array of cards without the specified card from the player hand
+	 */
+	public static Card[] removeCards(Card[] hand, int... index) {
+		Card[] copy = new Card[hand.length - index.length];
+		HashSet<Integer> indicies = new HashSet<Integer>();
+		for (int i : index) {
+			indicies.add(i);
+		}
+
+		for (int i = 0, j = 0; i < hand.length; i++) {
+			if (!indicies.contains(i)) {
+				copy[j] = hand[i];
+				j++;
 			}
 		}
-		Arrays.sort(values);
-		return values;
+
+		return copy;
 	}
+
+	/**
+	 * Maps each card rank number in cards to the number of occurrences of that rank
+	 * number
+	 * 
+	 * <p>
+	 * For example, three kings, an ace and four would have the key value pairs:
+	 * 
+	 * <ul>
+	 * <li><code>1: 1</code></li>
+	 * <li><code>4: 1</code></li>
+	 * <li><code>13: 1</code></li>
+	 * </ul>
+	 * 
+	 * @param cards an array of card objects
+	 * @return a HashMap that maps each rank number to the number of occurrences
+	 */
+	private static HashMap<Integer, Integer> countDuplicates(Card[] cards) {
+		HashMap<Integer, Integer> duplicates = new HashMap<Integer, Integer>();
+
+		for (Card c : cards) {
+			Integer cardRankNumber = c.getRankNumber();
+			if (duplicates.containsKey(cardRankNumber)) {
+				Integer oldAmount = duplicates.get(cardRankNumber);
+				duplicates.replace(cardRankNumber, Integer.valueOf(oldAmount + 1));
+			} else {
+				duplicates.put(cardRankNumber, Integer.valueOf(1));
+			}
+		}
+
+		return duplicates;
+	}
+
 }
