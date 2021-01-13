@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import card.Card;
 import card.Rank;
@@ -135,18 +136,10 @@ final class Calculators {
 	 *                                  5 cards
 	 */
 	private static int isFifteen(Card[] cards) {
-		if (cards.length < 2) {
-			throw new IllegalArgumentException("you must supply at least two card arguments");
+		if (cards.length < 2 || cards.length > 5) {
+			throw new IllegalArgumentException("between 2 and 5 cards must be supplied");
 		}
-		if (cards.length > 5) {
-			throw new IllegalArgumentException("you cannot have more than five cards");
-		}
-
-		int sum = 0;
-		for (Card c : cards) {
-			sum += c.getValue();
-		}
-		return sum == 15 ? 2 : 0;
+		return Arrays.asList(cards).stream().mapToInt(c -> c.getValue()).sum() == 15 ? 2 : 0;
 	}
 
 	/**
