@@ -27,13 +27,13 @@ final class UserInterface {
 	private HashSet<Card> cardPile;
 
 	/**
-	 * An array of cards that represents a cribbage card hand
+	 * A set of cards that represents a cribbage card hand
 	 * 
 	 * <p>
 	 * Can represent the five or six cards a player starts out with or the four
 	 * cards that remain after dropping the chosen cards
 	 */
-	private Card[] hand;
+	private HashSet<Card> hand;
 
 	/**
 	 * Used to get user input from the console
@@ -79,6 +79,7 @@ final class UserInterface {
 	public UserInterface() {
 		this.cardPile = new HashSet<Card>();
 		this.initialzeDeck();
+		hand = new HashSet<>();
 		this.in = new Scanner(System.in);
 	}
 
@@ -123,7 +124,6 @@ final class UserInterface {
 		}
 
 		int numCards = numPlayers.equals("2") ? 6 : 5;
-		this.hand = new Card[numCards];
 		System.out.println(numPlayers + " players: " + numCards + " cards to start");
 		return numCards;
 	}
@@ -147,11 +147,11 @@ final class UserInterface {
 					input = in.nextLine();
 					card = checkValidCard(input);
 				}
-				hand[i] = card;
+				hand.add(card);
 				System.out.println("Card " + (i + 1) + ": " + card.toString() + "\n");
 			}
 
-			noDuplicates = new HashSet<Card>(Arrays.asList(hand)).size() == numCards;
+			noDuplicates = hand.size() == numCards;
 
 			if (!noDuplicates) {
 				System.out.println("Duplicate card in hand, input cards again:\n");
@@ -171,16 +171,17 @@ final class UserInterface {
 	 */
 	private void printAveragePoints() {
 		StringBuilder sb = new StringBuilder();
-		Card[] droppedHand = new Card[4];
+		HashSet<Card> droppedHand= new HashSet<Card>(hand);
 
-		if (this.hand.length == 6) {
+		if (this.hand.size() == 6) {
+			HashSet<Card> remainingCards = new HashSet<Card>(hand);
 			sb.append("Average points for each drop combination:");
-			for (int i = 0; i < hand.length - 1; i++) {
-				for (int j = i + 1; j < hand.length; j++) {
+			for (Card droppedCard1 : this.hand) {
+				droppedHand.remove(droppedCard1);
+				remainingCards.remove(droppedCard1);
+				for (Card droppedCard2 : remainingCards) {
+					droppedHand.remove(droppedCard2);
 					double averagePoints = 0;
-					Card droppedCard1 = this.hand[i];
-					Card droppedCard2 = this.hand[j];
-					droppedHand = Calculators.removeCards(this.hand, i, j);
 					for (Card starterCard : this.cardPile) {
 						if (!this.containsCard(starterCard)) {
 							averagePoints += Calculators.totalPoints(droppedHand, starterCard);
@@ -189,14 +190,15 @@ final class UserInterface {
 					averagePoints = Math.round(100 * (averagePoints / 46)) / 100.0;
 					sb.append("\n" + droppedCard1.toString() + " and ");
 					sb.append(droppedCard2.toString() + ": " + averagePoints);
+					droppedHand.add(droppedCard2);
 				}
+				droppedHand.add(droppedCard1);
 			}
 		} else {
 			sb.append("Average points for each drop combination:");
-			for (int i = 0; i < hand.length; i++) {
+			for (Card droppedCard : this.hand) {
+				droppedHand.remove(droppedCard);
 				double averagePoints = 0;
-				Card droppedCard = this.hand[i];
-				droppedHand = Calculators.removeCards(this.hand, i);
 				for (Card starterCard : this.cardPile) {
 					if (!this.containsCard(starterCard)) {
 						averagePoints += Calculators.totalPoints(droppedHand, starterCard);
@@ -204,6 +206,7 @@ final class UserInterface {
 				}
 				averagePoints = Math.round(100 * (averagePoints / 47)) / 100.0;
 				sb.append("\n" + droppedCard.toString() + ": " + averagePoints);
+				droppedHand.add(droppedCard);
 			}
 		}
 		System.out.println(sb.toString());

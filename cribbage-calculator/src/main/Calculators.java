@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import card.Card;
 import card.Rank;
@@ -45,16 +44,17 @@ final class Calculators {
 	 * @return the total number of points in this hand
 	 * @throws IllegalArgumentException if the hand doesn't have five cards
 	 */
-	public static int totalPoints(Card[] hand, Card starter) {
+	public static int totalPoints(HashSet<Card> hand, Card starter) {
 		if (!legalHand(hand, starter)) {
 			throw new IllegalArgumentException("illegal hand and/or starter card");
 		}
-		Card[] fullHand = addStarter(hand, starter);
+		HashSet<Card> handWithStarter = new HashSet<Card>(hand);
+		handWithStarter.add(starter);
 
 		int points = 0;
-		points += fifteens(fullHand);
-		points += multiples(fullHand);
-		points += runs(fullHand);
+		points += fifteens(handWithStarter);
+		points += multiples(handWithStarter);
+		points += runs(handWithStarter);
 		points += flushes(hand, starter);
 		points += nobs(hand, starter);
 		return points;
@@ -72,11 +72,11 @@ final class Calculators {
 	 * @return true if the hand and starter are valid for a cribbage hand, false
 	 *         otherwise
 	 */
-	private static boolean legalHand(Card[] hand, Card starter) {
+	private static boolean legalHand(HashSet<Card> hand, Card starter) {
 		if (hand == null || starter == null) {
 			return false;
 		}
-		if (hand.length != 4) {
+		if (hand.size() != 4) {
 			return false;
 		}
 		return true;
@@ -98,28 +98,35 @@ final class Calculators {
 	 * @param hand a valid cribbage hand
 	 * @return the number of points obtained from fifteens
 	 */
-	public static int fifteens(Card[] cards) {
+	public static int fifteens(HashSet<Card> cards) {
+		HashSet<Card> copy = new HashSet<Card>(cards);
 		int score = 0;
 
 		/* Check if all five add up */
 		score += isFifteen(cards);
 
 		/* Check if four add up */
-		for (int i = 0; i < 5; i++) {
-			score += isFifteen(removeCards(cards, i));
+		for (Card c : cards) {
+			score += isFifteen(removeCards(cards, c));
 		}
 
 		/* Check if three add up */
-		for (int i = 0; i < 4; i++) {
-			for (int j = i + 1; j < 5; j++) {
-				score += isFifteen(removeCards(cards, i, j));
+		HashSet<Card> remainingCards = new HashSet<Card>(cards);
+		for (Card card1 : cards) {
+			copy = removeCards(cards, card1);
+			remainingCards.remove(card1);
+			for (Card card2 : remainingCards) {
+				score += isFifteen(removeCards(copy, card2));
 			}
 		}
 
 		/* Check if two add up */
-		for (int i = 0; i < 4; i++) {
-			for (int j = i + 1; j < 5; j++) {
-				Card[] vals = { cards[i], cards[j] };
+		remainingCards = new HashSet<Card>(cards);
+		for (Card card1 : cards) {
+			copy = removeCards(copy, card1);
+			remainingCards.remove(card1);
+			for (Card card2 : remainingCards) {
+				HashSet<Card> vals = new HashSet<Card>(Arrays.asList(card1, card2));
 				score += isFifteen(vals);
 			}
 		}
@@ -135,11 +142,9 @@ final class Calculators {
 	 * @throws IllegalArgumentException if the array of cards has 0, 1 or more than
 	 *                                  5 cards
 	 */
-	private static int isFifteen(Card[] cards) {
-		if (cards.length < 2 || cards.length > 5) {
-			throw new IllegalArgumentException("between 2 and 5 cards must be supplied");
-		}
-		return Arrays.asList(cards).stream().mapToInt(c -> c.getValue()).sum() == 15 ? 2 : 0;
+	private static int isFifteen(HashSet<Card> cards) {
+		checkNumCards(cards, 2, 5);
+		return cards.stream().mapToInt(Card::getValue).sum() == 15 ? 2 : 0;
 	}
 
 	/**
@@ -159,20 +164,9 @@ final class Calculators {
 	 * @param hand a valid cribbage hand
 	 * @return the number of points obtained from multiples
 	 */
-	public static int multiples(Card[] cards) {
+	public static int multiples(HashSet<Card> cards) {
 		HashMap<Integer, Integer> values = countDuplicates(cards);
-
-		int score = 0;
-		for (Integer amount : values.values()) {
-			if (amount == Integer.valueOf(2)) {
-				score += 2;
-			} else if (amount == Integer.valueOf(3)) {
-				score += 6;
-			} else if (amount == Integer.valueOf(4)) {
-				score += 12;
-			}
-		}
-		return score;
+		return values.values().stream().mapToInt(v -> v * v - v).sum();
 	}
 
 	/**
@@ -191,7 +185,7 @@ final class Calculators {
 	 * @param hand a valid cribbage hand
 	 * @return the number of points obtained from runs
 	 */
-	public static int runs(Card[] cards) {
+	public static int runs(HashSet<Card> cards) {
 		/* The number of occurrences for each card rank number */
 		HashMap<Integer, Integer> duplicates = countDuplicates(cards);
 
@@ -288,9 +282,9 @@ final class Calculators {
 	 * @param hand a valid cribbage hand
 	 * @return the number of points obtained from flushes
 	 */
-	public static int flushes(Card[] hand, Card starter) {
+	public static int flushes(HashSet<Card> hand, Card starter) {
 		HashSet<Suit> uniqueSuits = new HashSet<Suit>(
-				Arrays.asList(hand).stream().map(card -> card.getSuit()).collect(Collectors.toSet()));
+				hand.stream().map(card -> card.getSuit()).collect(Collectors.toSet()));
 		return uniqueSuits.size() == 1 ? 4 + (uniqueSuits.add(starter.getSuit()) == false ? 1 : 0) : 0;
 	}
 
@@ -305,49 +299,26 @@ final class Calculators {
 	 * @param starter the starter card
 	 * @return the number of points obtained from nobs
 	 */
-	public static int nobs(Card[] hand, Card starter) {
-		HashSet<Suit> jackSuits = new HashSet<Suit>(Arrays.asList(hand).stream().filter(c -> c.getRank() == Rank.JACK)
-				.map(c -> c.getSuit()).collect(Collectors.toSet()));
+	public static int nobs(HashSet<Card> hand, Card starter) {
+		HashSet<Suit> jackSuits = new HashSet<Suit>(
+				hand.stream().filter(c -> c.getRank() == Rank.JACK).map(c -> c.getSuit()).collect(Collectors.toSet()));
 		return jackSuits.contains(starter.getSuit()) ? 1 : 0;
 	}
 
 	/**
+	 * Removes cards from a HashSet
 	 * 
+	 * <p>
+	 * Cards that are not in the set are ignored
 	 * 
-	 * @param hand
-	 * @param starter
-	 * @return
+	 * @param hand  a HashSet of cards
+	 * @param cards variable amount of cards to be removed
+	 * @return a new HashSet without the specified cards
 	 */
-	private static Card[] addStarter(Card[] hand, Card starter) {
-		Card[] arr = new Card[5];
-		for (int i = 0; i < 4; i++) {
-			arr[i] = hand[i];
-		}
-		arr[4] = starter;
-		return arr;
-	}
-
-	/**
-	 * Returns an array of cards without the specified card from the player hand
-	 * 
-	 * @param index the index of the card to be removed
-	 * @return an array of cards without the specified card from the player hand
-	 */
-	public static Card[] removeCards(Card[] hand, int... index) {
-		Card[] copy = new Card[hand.length - index.length];
-		HashSet<Integer> indicies = new HashSet<Integer>();
-		for (int i : index) {
-			indicies.add(i);
-		}
-
-		for (int i = 0, j = 0; i < hand.length; i++) {
-			if (!indicies.contains(i)) {
-				copy[j] = hand[i];
-				j++;
-			}
-		}
-
-		return copy;
+	private static HashSet<Card> removeCards(HashSet<Card> hand, Card... cards) {
+		return new HashSet<Card>(
+				hand.stream().filter(card -> !Arrays.asList(cards).stream().anyMatch(c -> c.equals(card)))
+						.collect(Collectors.toSet()));
 	}
 
 	/**
@@ -366,7 +337,7 @@ final class Calculators {
 	 * @param cards an array of card objects
 	 * @return a HashMap that maps each rank number to the number of occurrences
 	 */
-	private static HashMap<Integer, Integer> countDuplicates(Card[] cards) {
+	private static HashMap<Integer, Integer> countDuplicates(HashSet<Card> cards) {
 		HashMap<Integer, Integer> duplicates = new HashMap<Integer, Integer>();
 
 		for (Card c : cards) {
@@ -380,6 +351,13 @@ final class Calculators {
 		}
 
 		return duplicates;
+	}
+
+	private static void checkNumCards(HashSet<Card> cards, int min, int max) {
+		if (cards.size() < min || cards.size() > max) {
+			String errMsg = "between " + min + " and " + max + " cards must be supplied";
+			throw new IllegalArgumentException(errMsg);
+		}
 	}
 
 }
