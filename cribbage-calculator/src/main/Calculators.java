@@ -1,10 +1,11 @@
 package main;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.stream.IntStream;
 
 import card.Card;
 import card.Rank;
@@ -151,6 +152,13 @@ final class Calculators {
 		/* The number of occurrences for each card rank number */
 		HashMap<Integer, Integer> duplicates = countDuplicates(cards);
 
+		/*
+		 * TODO: Clean up this method. Use an ArrayList or other object to make it more
+		 * concise
+		 */
+		// List<Integer> uniques = new ArrayList<Integer>(duplicates.values());
+		// Collections.sort(uniques);
+
 		/* All unique card rank numbers */
 		Integer[] uniques = Arrays.copyOf(duplicates.values().toArray(), duplicates.size(), Integer[].class);
 		Arrays.sort(uniques);
@@ -205,27 +213,20 @@ final class Calculators {
 	/**
 	 * Checks if the supplied cards are consecutive to form a run
 	 * 
-	 * @param values a list of card values
+	 * @param values a sorted list of card rank values
 	 * @return 0 if the cards don't form a run, the length of the run (3-5) if the
 	 *         cards do form a run
 	 * @throws IllegalArgumentException if the array of cards has 0, 1 or more than
-	 *                                  5 cards
+	 *                                  5 cards rank values
 	 */
 	private static int isRun(Integer[] values) {
 		if (values.length < 2) {
-			throw new IllegalArgumentException("you must supply at least two card arguments");
+			throw new IllegalArgumentException("you must supply at least two card rank values");
 		}
 		if (values.length > 5) {
-			throw new IllegalArgumentException("you cannot have more than five cards");
+			throw new IllegalArgumentException("you cannot have more than five card rank values");
 		}
-
-		int startValue = values[0];
-		for (int i = 1; i < values.length; i++) {
-			if (values[i] != startValue + i) {
-				return 0;
-			}
-		}
-		return values.length;
+		return !IntStream.range(0, values.length).anyMatch(i -> values[i] != values[0] + i) ? values.length : 0;
 	}
 
 	/**
@@ -277,9 +278,9 @@ final class Calculators {
 	 * @return a new HashSet without the specified cards
 	 */
 	public static HashSet<Card> removeCards(HashSet<Card> hand, Card... cards) {
-		Stream<Card> cardStream = Arrays.asList(cards).stream();
 		return new HashSet<Card>(
-				hand.stream().filter(card -> !cardStream.anyMatch(c -> c.equals(card))).collect(Collectors.toSet()));
+				hand.stream().filter(card -> !Arrays.asList(cards).stream().anyMatch(c -> c.equals(card)))
+						.collect(Collectors.toSet()));
 	}
 
 	/**
@@ -318,13 +319,13 @@ final class Calculators {
 	 * Throws an exception if {@code cards} does not contain the required number of
 	 * cards
 	 * 
-	 * @param cards a {@code HashSet} of {@code Card} objects
+	 * @param cards a {@code Collection} of {@code Card} objects
 	 * @param min   the minimum number of {@code Card} objects that should be in
 	 *              {@code cards}
 	 * @param max   the maximum number of {@code Card} objects that should be in
 	 *              {@code cards}
 	 */
-	private static void checkNumCards(HashSet<Card> cards, int min, int max) {
+	private static void checkNumCards(Collection<Card> cards, int min, int max) {
 		if (cards.size() < min || cards.size() > max) {
 			String errMsg = "between " + min + " and " + max + " cards must be supplied";
 			throw new IllegalArgumentException(errMsg);
@@ -338,6 +339,7 @@ final class Calculators {
 	 * @return a {@code HashSet} of 2-element subsets (stored as {@code Card[]})
 	 */
 	public static HashSet<Card[]> subset2(HashSet<Card> cards) {
+		/* TODO: Make this a more general method, able to make a subset if size n */
 		HashSet<Card[]> subsets = new HashSet<Card[]>();
 		HashSet<Card> remaining = new HashSet<Card>(cards);
 		for (Card card1 : cards) {
