@@ -168,7 +168,7 @@ final class Calculators {
 
 		int score = 0;
 		if (maxLength == 5) {
-			score += isRun(uniques);
+			score = isRun(uniques);
 			if (score == 0) {
 				score += isRun(Arrays.copyOfRange(uniques, 0, 4));
 				score += isRun(Arrays.copyOfRange(uniques, 1, 5));
@@ -180,7 +180,7 @@ final class Calculators {
 			}
 			return score;
 		} else if (maxLength == 4) {
-			score += 2 * isRun(uniques);
+			score = 2 * isRun(uniques);
 			if (score == 0) {
 				if (isRun(Arrays.copyOfRange(uniques, 0, 3)) == 3) {
 					score = duplicates.get(uniques[3]) == 2 ? 3 : 6;
@@ -191,21 +191,14 @@ final class Calculators {
 			}
 			return score;
 		} else if (maxLength == 3) {
-			if (isRun(uniques) == 0) {
-				return 0;
-			}
-
 			/*
-			 * Since there is a run and three unique cards, there is either a triple or two
-			 * doubles. A triple run is three runs (9 points from runs) and a double double
-			 * run is four runs (12 points from runs)
+			 * There are three cases:
+			 *  1. There is no run, 0 points
+			 *  2. There is a triple run (a triple and two singles), 9 points
+			 *  3. There is a double double run (two doubles and a single), 12 points
 			 */
-			for (Integer i : uniques) {
-				if (duplicates.get(i) == 3) {
-					return 9;
-				}
-			}
-			return 12;
+			return isRun(uniques) == 0 ? 0
+					: (IntStream.range(0, uniques.length).anyMatch(i -> duplicates.get(uniques[i]) == 3) ? 9 : 12);
 		}
 		return 0; // A triple and double or quad and single won't have a run
 	}
@@ -226,7 +219,7 @@ final class Calculators {
 		if (values.length > 5) {
 			throw new IllegalArgumentException("you cannot have more than five card rank values");
 		}
-		return !IntStream.range(0, values.length).anyMatch(i -> values[i] != values[0] + i) ? values.length : 0;
+		return !IntStream.range(0, values.length - 1).anyMatch(i -> values[i + 1] != values[i] + 1) ? values.length : 0;
 	}
 
 	/**
