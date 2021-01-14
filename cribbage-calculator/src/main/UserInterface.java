@@ -74,7 +74,7 @@ final class UserInterface {
 			+ "'KH': King of hearts\n" + "Enter each of the cards in your hand one by one below:\n";
 
 	/**
-	 * Initializes the required fields
+	 * Initializes a UserInterface
 	 */
 	public UserInterface() {
 		this.cardPile = new HashSet<Card>();
@@ -110,7 +110,13 @@ final class UserInterface {
 	 * 
 	 * <p>
 	 * Loops until a valid number of players is inputed (2-4), then calculates and
-	 * returns the number of starting cards associated with that number of players
+	 * returns the number of starting cards associated with that number of players:
+	 * 
+	 * <ul>
+	 * <li>2 Players: 6 cards</li>
+	 * <li>3 Players: 5 cards</li>
+	 * <li>4 Players: 5 cards</li>
+	 * </ul>
 	 * 
 	 * @return the number of starting cards for the given number of players
 	 */
@@ -171,41 +177,29 @@ final class UserInterface {
 	 */
 	private void printAveragePoints() {
 		StringBuilder sb = new StringBuilder();
-		HashSet<Card> droppedHand= new HashSet<Card>(hand);
+		sb.append("Average points for each drop combination:");
 
+		/* With 6 cards, 2 must be dropped */
 		if (this.hand.size() == 6) {
-			HashSet<Card> remainingCards = new HashSet<Card>(hand);
-			sb.append("Average points for each drop combination:");
-			for (Card droppedCard1 : this.hand) {
-				droppedHand.remove(droppedCard1);
-				remainingCards.remove(droppedCard1);
-				for (Card droppedCard2 : remainingCards) {
-					droppedHand.remove(droppedCard2);
-					double averagePoints = 0;
-					for (Card starterCard : this.cardPile) {
-						if (!this.containsCard(starterCard)) {
-							averagePoints += Calculators.totalPoints(droppedHand, starterCard);
-						}
-					}
-					averagePoints = Math.round(100 * (averagePoints / 46)) / 100.0;
-					sb.append("\n" + droppedCard1.toString() + " and ");
-					sb.append(droppedCard2.toString() + ": " + averagePoints);
-					droppedHand.add(droppedCard2);
+			for (Card[] combination : Calculators.subset2(this.hand)) {
+				double averagePoints = 0;
+				for (Card starterCard : this.cardPile) {
+					averagePoints += this.containsCard(starterCard) ? 0
+							: Calculators.totalPoints(Calculators.removeCards(this.hand, combination), starterCard);
 				}
-				droppedHand.add(droppedCard1);
+				sb.append("\n" + combination[0].toString() + " and " + combination[1].toString() + ": "
+						+ Math.round(100 * (averagePoints / 46)) / 100.0);
 			}
-		} else {
-			sb.append("Average points for each drop combination:");
+		} else { /* With 5 cards, only one needs to be dropped */
+			HashSet<Card> droppedHand = new HashSet<Card>(hand);
 			for (Card droppedCard : this.hand) {
 				droppedHand.remove(droppedCard);
 				double averagePoints = 0;
 				for (Card starterCard : this.cardPile) {
-					if (!this.containsCard(starterCard)) {
-						averagePoints += Calculators.totalPoints(droppedHand, starterCard);
-					}
+					averagePoints += this.containsCard(starterCard) ? 0
+							: Calculators.totalPoints(droppedHand, starterCard);
 				}
-				averagePoints = Math.round(100 * (averagePoints / 47)) / 100.0;
-				sb.append("\n" + droppedCard.toString() + ": " + averagePoints);
+				sb.append("\n" + droppedCard.toString() + ": " + Math.round(100 * (averagePoints / 47)) / 100.0);
 				droppedHand.add(droppedCard);
 			}
 		}
@@ -213,10 +207,23 @@ final class UserInterface {
 	}
 
 	/**
+	 * Checks if a String represents a valid card, and returns the {@code Card}
+	 * object that it represents if it does
 	 * 
+	 * <p>
+	 * A valid card string is the rank (1-10, j, q or k) of the card followed by the first letter of
+	 * the suit (neither are case sensitive). Examples:
 	 * 
-	 * @param card
-	 * @return
+	 * <ul>
+	 * <li>"3d": Three of diamonds</li>
+	 * <li>"js": Jack of spades</li>
+	 * <li>"10c": Ten of clubs</li>
+	 * <li>"1h": Ace of hearts</li>
+	 * </ul>
+	 * 
+	 * @param card a string
+	 * @return the card object the String represents if the string is valid, null
+	 *         otherwise
 	 */
 	private static Card checkValidCard(String card) {
 		/*
@@ -257,12 +264,7 @@ final class UserInterface {
 	 * @return true if the card is in the player's hand, false otherwise
 	 */
 	private boolean containsCard(Card card) {
-		for (Card c : this.hand) {
-			if (c.equals(card)) {
-				return true;
-			}
-		}
-		return false;
+		return this.hand.contains(card);
 	}
 
 	public static void main(String[] args) {

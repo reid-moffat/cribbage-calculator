@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import card.Card;
 import card.Rank;
@@ -24,25 +25,20 @@ final class Calculators {
 	}
 
 	/**
-	 * Adds all of the point combinations together for a valid cribbage hand and
-	 * returns the total number of points
+	 * Adds all of the point combinations together for a valid cribbage hand plus
+	 * starter card (the card that is flipped up), then returns the total points
 	 * 
 	 * <p>
-	 * A valid cribbage hand is defined as a 1-dimensional array of five unique
-	 * strings, each representing a card in the player's hand and the last string
-	 * being the starter card. Each card is the value of the card (ace = 1, 2-10 =
-	 * their respective value, jack = 11, queen = 12, king = 13 [all face cards are
-	 * worth 10, but we need to distinguish between them for multiples and
-	 * straights]) plus the first letter of the suit (not case sensitive)
+	 * A valid cribbage hand is defined as a {@code HashSet} containing four
+	 * {@code Card} objects
 	 * 
-	 * <p>
-	 * For example, {@code ["3H", "10S", "5S", "13C", "2D"]} represents a hand with
-	 * a 3 of hearts, 10 of spades, 5 of spades, King of clubs and a starter 2 of
-	 * diamonds
-	 * 
-	 * @param hand a valid cribbage hand
-	 * @return the total number of points in this hand
-	 * @throws IllegalArgumentException if the hand doesn't have five cards
+	 * @param hand    a valid cribbage hand
+	 * @param starter the starter card
+	 * @return the total number of points in this cribbage hand with the given
+	 *         starter card
+	 * @throws IllegalArgumentException if {@code hand} does not contain exactly
+	 *                                  four {@code Card} objects or {@code starter}
+	 *                                  is {@code null}
 	 */
 	public static int totalPoints(HashSet<Card> hand, Card starter) {
 		if (!legalHand(hand, starter)) {
@@ -73,27 +69,17 @@ final class Calculators {
 	 *         otherwise
 	 */
 	private static boolean legalHand(HashSet<Card> hand, Card starter) {
-		if (hand == null || starter == null) {
-			return false;
-		}
-		if (hand.size() != 4) {
-			return false;
-		}
-		return true;
+		return !(hand == null || starter == null || hand.size() != 4);
 	}
 
 	/**
 	 * Returns the number of points obtained from fifteens in the given cribbage
-	 * hand
+	 * hand (with the starter card included)
 	 * 
 	 * <p>
 	 * Each combination of cards that add up to 15 is worth two points. Any number
 	 * of cards can be used, and cards may be used for multiple fifteens. All face
-	 * cards are worth 10 points for fifteens
-	 * 
-	 * <p>
-	 * For example, {@code ["4H", "5S", "6S", "13C", "1D"]} has two fifteens: 4 + 5
-	 * + 6 and 5 + king
+	 * cards are worth 10 points when calculating fifteens
 	 * 
 	 * @param hand a valid cribbage hand
 	 * @return the number of points obtained from fifteens
@@ -134,17 +120,13 @@ final class Calculators {
 
 	/**
 	 * Returns the number of points obtained from multiples in the given cribbage
-	 * hand
+	 * hand (with the starter card included)
 	 * 
 	 * <p>
 	 * Multiples are a double (2 points), triple (6 points) or quadruple (12 points)
 	 * of one value of card. Face cards are not considered the same for multiples; a
 	 * ten and a queen both have a value of 10 but they would not give points for a
 	 * double
-	 * 
-	 * <p>
-	 * For example, {@code ["13H", "10S", "11S", "13C", "12D"]} has two points from
-	 * multiples (double kings)
 	 * 
 	 * @param hand a valid cribbage hand
 	 * @return the number of points obtained from multiples
@@ -155,16 +137,12 @@ final class Calculators {
 
 	/**
 	 * Returns the number of points obtained from runs in a given cribbage hand
+	 * (with the starter card included)
 	 * 
 	 * <p>
 	 * A run is a sequence of three (3 points), four (4 points) or five (5 points)
 	 * consecutive cards. Suit does not matter, and cards can be part of multiple
 	 * runs
-	 * 
-	 * <p>
-	 * For example, {@code ["3H", "4S", "5S", "4C", "4D"]} has twelve points from
-	 * runs. This is because the run 3-4-5 can be made four times by swapping out
-	 * the two fours and two fives
 	 * 
 	 * @param hand a valid cribbage hand
 	 * @return the number of points obtained from runs
@@ -252,6 +230,7 @@ final class Calculators {
 
 	/**
 	 * Returns the number of points obtained from flushes in a given cribbage hand
+	 * and starter card
 	 * 
 	 * <p>
 	 * To obtain a flush, the player's hand must have all four cards of the same
@@ -259,11 +238,8 @@ final class Calculators {
 	 * obtained. Note that if only three cards in the player's hand plus the starter
 	 * card have the same suit, this is not a flush
 	 * 
-	 * <p>
-	 * For example, {@code ["3H", "10H", "5H", "13H", "2H"]} has 5 points from
-	 * flushes
-	 * 
-	 * @param hand a valid cribbage hand
+	 * @param hand    a valid cribbage hand
+	 * @param starter the starter card
 	 * @return the number of points obtained from flushes
 	 */
 	public static int flushes(HashSet<Card> hand, Card starter) {
@@ -273,7 +249,8 @@ final class Calculators {
 	}
 
 	/**
-	 * Returns the number of points obtained from nobs in a given cribbage hand
+	 * Returns the number of points obtained from nobs in a given cribbage hand and
+	 * starter card
 	 * 
 	 * <p>
 	 * One point is obtained from nobs if the player's hand has a jack of the same
@@ -284,25 +261,25 @@ final class Calculators {
 	 * @return the number of points obtained from nobs
 	 */
 	public static int nobs(HashSet<Card> hand, Card starter) {
-		HashSet<Suit> jackSuits = new HashSet<Suit>(
-				hand.stream().filter(c -> c.getRank() == Rank.JACK).map(c -> c.getSuit()).collect(Collectors.toSet()));
-		return jackSuits.contains(starter.getSuit()) ? 1 : 0;
+		return hand.stream().filter(c -> c.getRank() == Rank.JACK).map(c -> c.getSuit())
+				.anyMatch(s -> s.equals(starter.getSuit())) ? 1 : 0;
 	}
 
 	/**
-	 * Returns a new HashSet without the specified cards
+	 * Returns a new {@code HashSet} without the specified cards
 	 * 
 	 * <p>
-	 * Cards that are not in the set are ignored
+	 * Cards that are not in the set are ignored, attempting to remove a
+	 * {@code Card} that is not in the set will not throw an exception
 	 * 
 	 * @param hand  a HashSet of cards
 	 * @param cards variable amount of cards to be removed
 	 * @return a new HashSet without the specified cards
 	 */
-	private static HashSet<Card> removeCards(HashSet<Card> hand, Card... cards) {
+	public static HashSet<Card> removeCards(HashSet<Card> hand, Card... cards) {
+		Stream<Card> cardStream = Arrays.asList(cards).stream();
 		return new HashSet<Card>(
-				hand.stream().filter(card -> !Arrays.asList(cards).stream().anyMatch(c -> c.equals(card)))
-						.collect(Collectors.toSet()));
+				hand.stream().filter(card -> !cardStream.anyMatch(c -> c.equals(card))).collect(Collectors.toSet()));
 	}
 
 	/**
@@ -337,6 +314,16 @@ final class Calculators {
 		return duplicates;
 	}
 
+	/**
+	 * Throws an exception if {@code cards} does not contain the required number of
+	 * cards
+	 * 
+	 * @param cards a {@code HashSet} of {@code Card} objects
+	 * @param min   the minimum number of {@code Card} objects that should be in
+	 *              {@code cards}
+	 * @param max   the maximum number of {@code Card} objects that should be in
+	 *              {@code cards}
+	 */
 	private static void checkNumCards(HashSet<Card> cards, int min, int max) {
 		if (cards.size() < min || cards.size() > max) {
 			String errMsg = "between " + min + " and " + max + " cards must be supplied";
@@ -344,6 +331,12 @@ final class Calculators {
 		}
 	}
 
+	/**
+	 * Generates all 2-element subsets for {@code cards}
+	 * 
+	 * @param cards a {@code HashSet} of {@code Card} objects
+	 * @return a {@code HashSet} of 2-element subsets (stored as {@code Card[]})
+	 */
 	public static HashSet<Card[]> subset2(HashSet<Card> cards) {
 		HashSet<Card[]> subsets = new HashSet<Card[]>();
 		HashSet<Card> remaining = new HashSet<Card>(cards);
