@@ -160,11 +160,11 @@ final class Calculators {
 		// Collections.sort(uniques);
 
 		/* All unique card rank numbers */
-		Integer[] uniques = Arrays.copyOf(duplicates.values().toArray(), duplicates.size(), Integer[].class);
+		Integer[] uniques = Arrays.copyOf(duplicates.keySet().toArray(), duplicates.size(), Integer[].class);
 		Arrays.sort(uniques);
 
 		/* Maximum length of a run */
-		int maxLength = uniques.length;
+		int maxLength = uniques.length;		
 
 		int score = 0;
 		if (maxLength == 5) {
@@ -219,6 +219,7 @@ final class Calculators {
 		if (values.length > 5) {
 			throw new IllegalArgumentException("you cannot have more than five card rank values");
 		}
+		
 		return !IntStream.range(0, values.length - 1).anyMatch(i -> values[i + 1] != values[i] + 1) ? values.length : 0;
 	}
 
@@ -343,6 +344,17 @@ final class Calculators {
 			}
 		}
 		return subsets;
+	}
+	
+	public static void main(String[] args) {
+		HashSet<Card> hand = new HashSet<Card>();
+		hand.add(new Card(Rank.FOUR, Suit.SPADES));
+		hand.add(new Card(Rank.FIVE, Suit.SPADES));
+		hand.add(new Card(Rank.FIVE, Suit.DIAMONDS));
+		hand.add(new Card(Rank.FIVE, Suit.CLUBS));
+		hand.add(new Card(Rank.SIX, Suit.SPADES));
+		
+		System.out.println(runs(hand));
 	}
 
 }

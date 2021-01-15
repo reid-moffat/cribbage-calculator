@@ -156,7 +156,11 @@ final class UserInterface {
 				hand.add(card);
 				System.out.println("Card " + (i + 1) + ": " + card.toString() + "\n");
 			}
-
+			/*
+			 * TODO: HashSets don't have duplicates, so this can be simplified (check each
+			 * time that an element is added so all the cards don't have to be inputed
+			 * again)
+			 */
 			noDuplicates = hand.size() == numCards;
 
 			if (!noDuplicates) {
@@ -211,8 +215,8 @@ final class UserInterface {
 	 * object that it represents if it does
 	 * 
 	 * <p>
-	 * A valid card string is the rank (1-10, j, q or k) of the card followed by the first letter of
-	 * the suit (neither are case sensitive). Examples:
+	 * A valid card string is the rank (1-10, j, q or k) of the card followed by the
+	 * first letter of the suit (neither are case sensitive). Examples:
 	 * 
 	 * <ul>
 	 * <li>"3d": Three of diamonds</li>
