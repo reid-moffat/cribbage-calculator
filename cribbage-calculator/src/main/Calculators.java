@@ -15,6 +15,10 @@ import card.Suit;
  * The utility class {@code Calculators} contains methods for calculating the
  * score of a cribbage hand with a starter card
  * 
+ * <p>
+ * Passing a HashSet of four cards and a starter card in {@code totalPoints()}
+ * will return the total number of cribbage points in the given hand
+ * 
  * @author Reid Moffat
  */
 final class Calculators {
@@ -26,8 +30,8 @@ final class Calculators {
 	}
 
 	/**
-	 * Adds all of the point combinations together for a valid cribbage hand plus
-	 * starter card (the card that is flipped up), then returns the total points
+	 * Calculates the sum of point combinations for a valid cribbage hand plus
+	 * starter card
 	 * 
 	 * <p>
 	 * A valid cribbage hand is defined as a {@code HashSet} containing four
@@ -42,7 +46,7 @@ final class Calculators {
 	 *                                  is {@code null}
 	 */
 	public static int totalPoints(HashSet<Card> hand, Card starter) {
-		if (!legalHand(hand, starter)) {
+		if (hand == null || starter == null || hand.size() != 4) {
 			throw new IllegalArgumentException("illegal hand and/or starter card");
 		}
 		HashSet<Card> handWithStarter = new HashSet<Card>(hand);
@@ -58,29 +62,13 @@ final class Calculators {
 	}
 
 	/**
-	 * Returns true if the hand and starter are valid for a cribbage hand
-	 * 
-	 * <p>
-	 * To be valid, hand and starter must not be null references and hand must have
-	 * four card objects
-	 * 
-	 * @param hand    an array of card objects
-	 * @param starter a card object
-	 * @return true if the hand and starter are valid for a cribbage hand, false
-	 *         otherwise
-	 */
-	private static boolean legalHand(HashSet<Card> hand, Card starter) {
-		return !(hand == null || starter == null || hand.size() != 4);
-	}
-
-	/**
 	 * Returns the number of points obtained from fifteens in the given cribbage
 	 * hand (with the starter card included)
 	 * 
 	 * <p>
 	 * Each combination of cards that add up to 15 is worth two points. Any number
 	 * of cards can be used, and cards may be used for multiple fifteens. All face
-	 * cards are worth 10 points when calculating fifteens
+	 * cards are worth 10 when calculating fifteens
 	 * 
 	 * @param hand a valid cribbage hand
 	 * @return the number of points obtained from fifteens
@@ -125,7 +113,7 @@ final class Calculators {
 	 * 
 	 * <p>
 	 * Multiples are a double (2 points), triple (6 points) or quadruple (12 points)
-	 * of one value of card. Face cards are not considered the same for multiples; a
+	 * of one rank of card. Face cards are not considered the same for multiples; a
 	 * ten and a queen both have a value of 10 but they would not give points for a
 	 * double
 	 * 
@@ -133,6 +121,18 @@ final class Calculators {
 	 * @return the number of points obtained from multiples
 	 */
 	public static int multiples(HashSet<Card> cards) {
+		/**
+		 * Counting points from each multiple is simple because a multiple of n cards is
+		 * worth n*n - n points:
+		 * 
+		 * 1: 1*1-1 = 0 points
+		 * 
+		 * 2: 2*2-2 = 2 points
+		 * 
+		 * 3: 3*3 - 3 = 3 points
+		 * 
+		 * 4: 4*4 - 4 = 12 points
+		 */
 		return countDuplicates(cards).values().stream().mapToInt(v -> v * v - v).sum();
 	}
 
@@ -164,7 +164,7 @@ final class Calculators {
 		Arrays.sort(uniques);
 
 		/* Maximum length of a run */
-		int maxLength = uniques.length;		
+		int maxLength = uniques.length;
 
 		int score = 0;
 		if (maxLength == 5) {
@@ -192,10 +192,9 @@ final class Calculators {
 			return score;
 		} else if (maxLength == 3) {
 			/*
-			 * There are three cases:
-			 *  1. There is no run, 0 points
-			 *  2. There is a triple run (a triple and two singles), 9 points
-			 *  3. There is a double double run (two doubles and a single), 12 points
+			 * There are three cases: 1. There is no run, 0 points 2. There is a triple run
+			 * (a triple and two singles), 9 points 3. There is a double double run (two
+			 * doubles and a single), 12 points
 			 */
 			return isRun(uniques) == 0 ? 0
 					: (IntStream.range(0, uniques.length).anyMatch(i -> duplicates.get(uniques[i]) == 3) ? 9 : 12);
@@ -209,18 +208,14 @@ final class Calculators {
 	 * @param values a sorted list of card rank values
 	 * @return 0 if the cards don't form a run, the length of the run (3-5) if the
 	 *         cards do form a run
-	 * @throws IllegalArgumentException if the array of cards has 0, 1 or more than
-	 *                                  5 cards rank values
+	 * @throws IllegalArgumentException if the array of cards does not have 3, 4 or
+	 *                                  5 card rank values
 	 */
 	private static int isRun(Integer[] values) {
-		if (values.length < 2) {
-			throw new IllegalArgumentException("you must supply at least two card rank values");
+		if (values.length < 3 || values.length > 5) {
+			throw new IllegalArgumentException("between 3 and 5 cards must be supplied for a run");
 		}
-		if (values.length > 5) {
-			throw new IllegalArgumentException("you cannot have more than five card rank values");
-		}
-		
-		return !IntStream.range(0, values.length - 1).anyMatch(i -> values[i + 1] != values[i] + 1) ? values.length : 0;
+		return IntStream.range(0, values.length - 1).anyMatch(i -> values[i + 1] != values[i] + 1) ? 0 : values.length;
 	}
 
 	/**
@@ -238,9 +233,8 @@ final class Calculators {
 	 * @return the number of points obtained from flushes
 	 */
 	public static int flushes(HashSet<Card> hand, Card starter) {
-		HashSet<Suit> uniqueSuits = new HashSet<Suit>(
-				hand.stream().map(card -> card.getSuit()).collect(Collectors.toSet()));
-		return uniqueSuits.size() == 1 ? 4 + (uniqueSuits.add(starter.getSuit()) == false ? 1 : 0) : 0;
+		HashSet<Suit> uniqueSuits = new HashSet<Suit>(hand.stream().map(Card::getSuit).collect(Collectors.toSet()));
+		return uniqueSuits.size() == 1 ? 4 + (!uniqueSuits.add(starter.getSuit()) ? 1 : 0) : 0;
 	}
 
 	/**
@@ -256,8 +250,8 @@ final class Calculators {
 	 * @return the number of points obtained from nobs
 	 */
 	public static int nobs(HashSet<Card> hand, Card starter) {
-		return hand.stream().filter(c -> c.getRank() == Rank.JACK).map(c -> c.getSuit())
-				.anyMatch(s -> s.equals(starter.getSuit())) ? 1 : 0;
+		return hand.stream().filter(c -> c.getRank() == Rank.JACK).map(Card::getSuit)
+				.anyMatch(starter.getSuit()::equals) ? 1 : 0;
 	}
 
 	/**
@@ -287,7 +281,7 @@ final class Calculators {
 	 * <ul>
 	 * <li><code>1: 1</code></li>
 	 * <li><code>4: 1</code></li>
-	 * <li><code>13: 1</code></li>
+	 * <li><code>13: 3</code></li>
 	 * </ul>
 	 * 
 	 * @param cards an array of card objects
@@ -345,16 +339,15 @@ final class Calculators {
 		}
 		return subsets;
 	}
-	
+
 	public static void main(String[] args) {
 		HashSet<Card> hand = new HashSet<Card>();
 		hand.add(new Card(Rank.FOUR, Suit.SPADES));
-		hand.add(new Card(Rank.FIVE, Suit.SPADES));
+		hand.add(new Card(Rank.JACK, Suit.HEARTS));
 		hand.add(new Card(Rank.FIVE, Suit.DIAMONDS));
 		hand.add(new Card(Rank.FIVE, Suit.CLUBS));
-		hand.add(new Card(Rank.SIX, Suit.SPADES));
-		
-		System.out.println(runs(hand));
+
+		System.out.println(nobs(hand, new Card(Rank.FIVE, Suit.HEARTS)));
 	}
 
 }

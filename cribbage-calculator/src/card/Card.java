@@ -6,13 +6,12 @@ import java.util.Objects;
  * A class that represents cards in the standard 52-card playing card deck
  * 
  * <p>
- * This class is made specifically for cribbage, and as such each card has
- * cribbage values:
+ * Each card also has a cribbage value based on its rank:
  * 
  * <ul>
  * <li><code>Ace: 1</code>
- * <li><code>Two to Nine: Their respective values</code>
- * <li><code>Ten and face cards: 10</code>
+ * <li><code>Two to Ten: Their respective values</code>
+ * <li><code>Face cards: 10</code>
  * </ul>
  * 
  * @author Reid Moffat
@@ -143,9 +142,6 @@ public final class Card implements Comparable<Card> {
 		return this.rank.getRankNumber();
 	}
 
-	/**
-	 * 
-	 */
 	@Override
 	public int hashCode() {
 		return Objects.hash(rank, suit);
@@ -167,13 +163,14 @@ public final class Card implements Comparable<Card> {
 	}
 
 	/**
-	 * Returns the a string with the English meaning of a card
+	 * Returns the English way of describing this card (such as "Jack of hearts",
+	 * "Ace of spades", etc)
 	 */
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		String rankString = rank.toString();
-		sb.append(rankString.substring(0, 1));
+		sb.append(rankString.substring(0, 1)); // Keep the first letter capitalized
 		sb.append(rankString.substring(1, rankString.length()).toLowerCase());
 		sb.append(" of " + suit.toString().toLowerCase());
 		return sb.toString();

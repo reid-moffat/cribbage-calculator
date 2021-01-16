@@ -236,8 +236,7 @@ final class UserInterface {
 		 */
 		if (card.length() == 3) {
 			if (card.charAt(0) == '1' && card.charAt(1) == '0') {
-				StringBuilder sb = new StringBuilder();
-				card = sb.append('T').append(card.charAt(2)).toString();
+				card = "T" + card.charAt(2);
 			} else {
 				return null;
 			}
