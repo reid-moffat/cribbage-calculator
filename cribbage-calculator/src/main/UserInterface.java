@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 import card.Card;
 import card.Rank;
@@ -62,16 +63,21 @@ final class UserInterface {
 	 * input the number of players in the cribbage game (for determining the number
 	 * of starting cards)
 	 */
-	private static final String ENTER_PLAYERS = "Cribbage Calculator\n" + "Created by Reid Moffat\n\n"
-			+ "How many players (2-4)?";
+	private static final String ENTER_PLAYERS = "Cribbage Calculator\n"
+											  + "Created by Reid Moffat\n\n"
+											  + "How many players (2-4)?";
 
 	/**
 	 * A string that explains how to properly enter card values, gives some examples
 	 * and prompts the user to enter their cards into the console
 	 */
 	private static final String ENTER_CARDS = "\nEach card must be its value (1-10, J, Q or K) plus the suit\n"
-			+ "Examples:\n" + "'1D': Ace of diamonds\n" + "'4S': Four of spades\n" + "'10C': Ten of clubs\n"
-			+ "'KH': King of hearts\n" + "Enter each of the cards in your hand one by one below:\n";
+											+ "Examples:\n"
+											+ "'1D': Ace of diamonds\n"
+											+ "'4S': Four of spades\n"
+											+ "'10C': Ten of clubs\n"
+											+ "'KH': King of hearts\n"
+											+ "Enter each of the cards in your hand one by one below:\n";
 
 	/**
 	 * Initializes a UserInterface
@@ -156,11 +162,6 @@ final class UserInterface {
 				hand.add(card);
 				System.out.println("Card " + (i + 1) + ": " + card.toString() + "\n");
 			}
-			/*
-			 * TODO: HashSets don't have duplicates, so this can be simplified (check each
-			 * time that an element is added so all the cards don't have to be inputed
-			 * again)
-			 */
 			noDuplicates = hand.size() == numCards;
 
 			if (!noDuplicates) {
@@ -185,17 +186,17 @@ final class UserInterface {
 
 		/* With 6 cards, 2 must be dropped */
 		if (this.hand.size() == 6) {
-			for (Card[] combination : Calculators.subset2(this.hand)) {
+			for (Card[] combination : subset2(this.hand)) {
 				double averagePoints = 0;
 				for (Card starterCard : this.cardPile) {
 					averagePoints += this.containsCard(starterCard) ? 0
-							: Calculators.totalPoints(Calculators.removeCards(this.hand, combination), starterCard);
+							: Calculators.totalPoints(removeCards(this.hand, combination), starterCard);
 				}
 				sb.append("\n" + combination[0].toString() + " and " + combination[1].toString() + ": "
 						+ Math.round(100 * (averagePoints / 46)) / 100.0);
 			}
 		} else { /* With 5 cards, only one needs to be dropped */
-			HashSet<Card> droppedHand = new HashSet<Card>(hand);
+			HashSet<Card> droppedHand = new HashSet<Card>(this.hand);
 			for (Card droppedCard : this.hand) {
 				droppedHand.remove(droppedCard);
 				double averagePoints = 0;
@@ -240,10 +241,8 @@ final class UserInterface {
 			} else {
 				return null;
 			}
-		}
-
-		card = card.toUpperCase();
-		if (card.length() == 2) {
+		} else if (card.length() == 2) {
+			card = card.toUpperCase();
 			Character rank = card.charAt(0);
 			Character suit = card.charAt(1);
 			if (!VALID_RANKS.contains(rank) || !VALID_SUITS.contains(suit)) {
@@ -268,6 +267,43 @@ final class UserInterface {
 	 */
 	private boolean containsCard(Card card) {
 		return this.hand.contains(card);
+	}
+
+	/**
+	 * Generates a {@code HashSet} of all 2-{@code Card} combinations in
+	 * {@code cards}
+	 * 
+	 * @param cards a {@code HashSet} of {@code Card} objects
+	 * @return a {@code HashSet} of 2-element subsets (stored as {@code Card[]})
+	 */
+	private static HashSet<Card[]> subset2(HashSet<Card> cards) {
+		HashSet<Card[]> subsets = new HashSet<Card[]>();
+		HashSet<Card> remaining = new HashSet<Card>(cards);
+		for (Card card1 : cards) {
+			remaining.remove(card1);
+			for (Card card2 : remaining) {
+				Card[] temp = { card1, card2 };
+				subsets.add(temp);
+			}
+		}
+		return subsets;
+	}
+
+	/**
+	 * Returns a new {@code HashSet} without the specified cards
+	 * 
+	 * <p>
+	 * Cards that are not in the set are ignored, attempting to remove a
+	 * {@code Card} that is not in the set will not throw an exception
+	 * 
+	 * @param hand  a {@code HashSet} of cards
+	 * @param cards variable amount of cards to be removed
+	 * @return a new HashSet without the specified cards
+	 */
+	private static HashSet<Card> removeCards(HashSet<Card> hand, Card... cards) {
+		return new HashSet<Card>(
+				hand.stream().filter(card -> !Arrays.asList(cards).stream().anyMatch(c -> c.equals(card)))
+						.collect(Collectors.toSet()));
 	}
 
 	public static void main(String[] args) {

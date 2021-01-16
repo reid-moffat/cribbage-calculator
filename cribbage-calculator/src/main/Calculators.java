@@ -1,9 +1,9 @@
 package main;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -52,58 +52,44 @@ final class Calculators {
 		HashSet<Card> handWithStarter = new HashSet<Card>(hand);
 		handWithStarter.add(starter);
 
+		/*
+		 * Calculating a power set is O(2^n), but n will always be 5 in this case and
+		 * this approach saves
+		 */
+		HashSet<HashSet<Card>> combinations = powerSet(handWithStarter);
+
 		int points = 0;
-		points += fifteens(handWithStarter);
+		points += fifteens(combinations);
 		points += multiples(handWithStarter);
-		points += runs(handWithStarter);
+		points += runs(combinations);
 		points += flushes(hand, starter);
 		points += nobs(hand, starter);
 		return points;
 	}
 
 	/**
-	 * Returns the number of points obtained from fifteens in the given cribbage
-	 * hand (with the starter card included)
+	 * Returns the number of points obtained from fifteens
 	 * 
 	 * <p>
 	 * Each combination of cards that add up to 15 is worth two points. Any number
 	 * of cards can be used, and cards may be used for multiple fifteens. All face
 	 * cards are worth 10 when calculating fifteens
 	 * 
-	 * @param hand a valid cribbage hand
+	 * @param cardCombinations the power set of a set containing a cribbage hand and
+	 *                         starter card
 	 * @return the number of points obtained from fifteens
 	 */
-	public static int fifteens(HashSet<Card> cards) {
-		int score = 0;
-
-		/* Check if all five add up */
-		score += isFifteen(cards);
-
-		/* Check if four add up */
-		for (Card c : cards) {
-			score += isFifteen(removeCards(cards, c));
-		}
-
-		/* Check if three or two add up */
-		HashSet<Card[]> combinationsOf2 = subset2(cards);
-		for (Card[] combination : combinationsOf2) {
-			score += isFifteen(removeCards(cards, combination)); // 3 cards
-			score += isFifteen(new HashSet<Card>(Arrays.asList(combination))); // 2 cards
-		}
-
-		return score;
+	private static int fifteens(HashSet<HashSet<Card>> cardCombinations) {
+		return cardCombinations.stream().filter(c -> c.size() >= 2).mapToInt(c -> isFifteen(c)).sum();
 	}
 
 	/**
-	 * Checks if all the values of the supplied card arguments add up to 15
+	 * Checks if all the rank values of the {@code Card} objects add up to 15
 	 * 
-	 * @param cards an array card objects
+	 * @param cards a {@code HashSet} of {@code Card} objects
 	 * @return 2 if the card values add up to 15, 0 if not
-	 * @throws IllegalArgumentException if the array of cards has 0, 1 or more than
-	 *                                  5 cards
 	 */
 	private static int isFifteen(HashSet<Card> cards) {
-		checkNumCards(cards, 2, 5);
 		return cards.stream().mapToInt(Card::getValue).sum() == 15 ? 2 : 0;
 	}
 
@@ -117,10 +103,10 @@ final class Calculators {
 	 * ten and a queen both have a value of 10 but they would not give points for a
 	 * double
 	 * 
-	 * @param hand a valid cribbage hand
+	 * @param cards a {@code HashSet} of {@code Card} objects
 	 * @return the number of points obtained from multiples
 	 */
-	public static int multiples(HashSet<Card> cards) {
+	private static int multiples(HashSet<Card> cards) {
 		/**
 		 * Counting points from each multiple is simple because a multiple of n cards is
 		 * worth n*n - n points:
@@ -137,85 +123,33 @@ final class Calculators {
 	}
 
 	/**
-	 * Returns the number of points obtained from runs in a given cribbage hand
-	 * (with the starter card included)
+	 * Returns the number of points obtained from runs
 	 * 
 	 * <p>
 	 * A run is a sequence of three (3 points), four (4 points) or five (5 points)
-	 * consecutive cards. Suit does not matter, and cards can be part of multiple
-	 * runs
+	 * cards with consecutive ranks. Suit does not matter, and cards can be part of
+	 * multiple runs
 	 * 
-	 * @param hand a valid cribbage hand
+	 * @param cardCombinations the power set of a set containing a cribbage hand and
+	 *                         starter card
 	 * @return the number of points obtained from runs
 	 */
-	public static int runs(HashSet<Card> cards) {
-		/* The number of occurrences for each card rank number */
-		HashMap<Integer, Integer> duplicates = countDuplicates(cards);
-
-		/*
-		 * TODO: Clean up this method. Use an ArrayList or other object to make it more
-		 * concise
-		 */
-		// List<Integer> uniques = new ArrayList<Integer>(duplicates.values());
-		// Collections.sort(uniques);
-
-		/* All unique card rank numbers */
-		Integer[] uniques = Arrays.copyOf(duplicates.keySet().toArray(), duplicates.size(), Integer[].class);
-		Arrays.sort(uniques);
-
-		/* Maximum length of a run */
-		int maxLength = uniques.length;
-
-		int score = 0;
-		if (maxLength == 5) {
-			score = isRun(uniques);
-			if (score == 0) {
-				score += isRun(Arrays.copyOfRange(uniques, 0, 4));
-				score += isRun(Arrays.copyOfRange(uniques, 1, 5));
-			}
-			if (score == 0) {
-				score += isRun(Arrays.copyOfRange(uniques, 0, 3));
-				score += isRun(Arrays.copyOfRange(uniques, 1, 4));
-				score += isRun(Arrays.copyOfRange(uniques, 2, 5));
-			}
-			return score;
-		} else if (maxLength == 4) {
-			score = 2 * isRun(uniques);
-			if (score == 0) {
-				if (isRun(Arrays.copyOfRange(uniques, 0, 3)) == 3) {
-					score = duplicates.get(uniques[3]) == 2 ? 3 : 6;
-				}
-				if (isRun(Arrays.copyOfRange(uniques, 1, 4)) == 3) {
-					score = duplicates.get(uniques[0]) == 2 ? 3 : 6;
-				}
-			}
-			return score;
-		} else if (maxLength == 3) {
-			/*
-			 * There are three cases: 1. There is no run, 0 points 2. There is a triple run
-			 * (a triple and two singles), 9 points 3. There is a double double run (two
-			 * doubles and a single), 12 points
-			 */
-			return isRun(uniques) == 0 ? 0
-					: (IntStream.range(0, uniques.length).anyMatch(i -> duplicates.get(uniques[i]) == 3) ? 9 : 12);
-		}
-		return 0; // A triple and double or quad and single won't have a run
+	private static int runs(HashSet<HashSet<Card>> cardCombinations) {
+		return cardCombinations.stream().filter(c -> c.size() >= 3).mapToInt(c -> isRun(c)).sum();
 	}
 
 	/**
 	 * Checks if the supplied cards are consecutive to form a run
 	 * 
-	 * @param values a sorted list of card rank values
+	 * @param cards a {@code HashSet} of {@code Card} objects
 	 * @return 0 if the cards don't form a run, the length of the run (3-5) if the
 	 *         cards do form a run
-	 * @throws IllegalArgumentException if the array of cards does not have 3, 4 or
-	 *                                  5 card rank values
 	 */
-	private static int isRun(Integer[] values) {
-		if (values.length < 3 || values.length > 5) {
-			throw new IllegalArgumentException("between 3 and 5 cards must be supplied for a run");
-		}
-		return IntStream.range(0, values.length - 1).anyMatch(i -> values[i + 1] != values[i] + 1) ? 0 : values.length;
+	private static int isRun(HashSet<Card> cards) {
+		ArrayList<Integer> values = new ArrayList<Integer>(
+				cards.stream().mapToInt(card -> card.getRankNumber()).sorted().boxed().collect(Collectors.toList()));
+		return IntStream.range(0, values.size() - 1).anyMatch(i -> values.get(i + 1) != values.get(i) + 1) ? 0
+				: values.size();
 	}
 
 	/**
@@ -232,7 +166,7 @@ final class Calculators {
 	 * @param starter the starter card
 	 * @return the number of points obtained from flushes
 	 */
-	public static int flushes(HashSet<Card> hand, Card starter) {
+	private static int flushes(HashSet<Card> hand, Card starter) {
 		HashSet<Suit> uniqueSuits = new HashSet<Suit>(hand.stream().map(Card::getSuit).collect(Collectors.toSet()));
 		return uniqueSuits.size() == 1 ? 4 + (!uniqueSuits.add(starter.getSuit()) ? 1 : 0) : 0;
 	}
@@ -249,26 +183,9 @@ final class Calculators {
 	 * @param starter the starter card
 	 * @return the number of points obtained from nobs
 	 */
-	public static int nobs(HashSet<Card> hand, Card starter) {
+	private static int nobs(HashSet<Card> hand, Card starter) {
 		return hand.stream().filter(c -> c.getRank() == Rank.JACK).map(Card::getSuit)
 				.anyMatch(starter.getSuit()::equals) ? 1 : 0;
-	}
-
-	/**
-	 * Returns a new {@code HashSet} without the specified cards
-	 * 
-	 * <p>
-	 * Cards that are not in the set are ignored, attempting to remove a
-	 * {@code Card} that is not in the set will not throw an exception
-	 * 
-	 * @param hand  a HashSet of cards
-	 * @param cards variable amount of cards to be removed
-	 * @return a new HashSet without the specified cards
-	 */
-	public static HashSet<Card> removeCards(HashSet<Card> hand, Card... cards) {
-		return new HashSet<Card>(
-				hand.stream().filter(card -> !Arrays.asList(cards).stream().anyMatch(c -> c.equals(card)))
-						.collect(Collectors.toSet()));
 	}
 
 	/**
@@ -304,40 +221,34 @@ final class Calculators {
 	}
 
 	/**
-	 * Throws an exception if {@code cards} does not contain the required number of
-	 * cards
+	 * Returns the power set of a given set
 	 * 
-	 * @param cards a {@code Collection} of {@code Card} objects
-	 * @param min   the minimum number of {@code Card} objects that should be in
-	 *              {@code cards}
-	 * @param max   the maximum number of {@code Card} objects that should be in
-	 *              {@code cards}
-	 */
-	private static void checkNumCards(Collection<Card> cards, int min, int max) {
-		if (cards.size() < min || cards.size() > max) {
-			String errMsg = "between " + min + " and " + max + " cards must be supplied";
-			throw new IllegalArgumentException(errMsg);
-		}
-	}
-
-	/**
-	 * Generates all 2-element subsets for {@code cards}
+	 * <p>
+	 * Adapted from <a href=
+	 * "https://stackoverflow.com/questions/1670862/obtaining-a-powerset-of-a-set-in-java">stack
+	 * overflow</a>
 	 * 
-	 * @param cards a {@code HashSet} of {@code Card} objects
-	 * @return a {@code HashSet} of 2-element subsets (stored as {@code Card[]})
+	 * @param originalSet a {@code HashSet} of objects
+	 * @param <T>         the type of objects in {@code originalSet}
+	 * @return a {@code HashSet} containing all subsets of {@code originalSet}
 	 */
-	public static HashSet<Card[]> subset2(HashSet<Card> cards) {
-		/* TODO: Make this a more general method, able to make a subset if size n */
-		HashSet<Card[]> subsets = new HashSet<Card[]>();
-		HashSet<Card> remaining = new HashSet<Card>(cards);
-		for (Card card1 : cards) {
-			remaining.remove(card1);
-			for (Card card2 : remaining) {
-				Card[] temp = { card1, card2 };
-				subsets.add(temp);
-			}
+	private static <T> HashSet<HashSet<T>> powerSet(HashSet<T> originalSet) {
+		HashSet<HashSet<T>> sets = new HashSet<HashSet<T>>();
+		if (originalSet.isEmpty()) {
+			sets.add(new HashSet<T>());
+			return sets;
 		}
-		return subsets;
+		List<T> list = new ArrayList<T>(originalSet);
+		T head = list.get(0);
+		HashSet<T> rest = new HashSet<T>(list.subList(1, list.size()));
+		for (HashSet<T> set : powerSet(rest)) {
+			HashSet<T> newSet = new HashSet<T>();
+			newSet.add(head);
+			newSet.addAll(set);
+			sets.add(newSet);
+			sets.add(set);
+		}
+		return sets;
 	}
 
 	public static void main(String[] args) {
