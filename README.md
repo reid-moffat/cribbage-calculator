@@ -1,15 +1,15 @@
 # cribbage-calculator
 
-I have been playing cribbage for years and learned plenty of tricks and strategies; but figuring out what cards to discard can still be quite difficult
+Cribbage is a game that is hard to pick up and practically impossible to master
 
-There are many simple strategies that can be picked up and applied pretty quick (such as 'never start with a five'); but calculating the optimal discard card(s) is simply not feasible most of the time due to the shear amount of possbilities of drop combinations and starter cards
+There are many simple strategies that can be picked up and applied pretty quick (such as 'never start with a five'); but calculating the optimal discard card(s) is simply not feasible most of the time due to the sheer amount of possibilities of drop combinations and starter cards
 
-There are many online claculators that can find points in a given hand and maybe give tips, but more can be done. The goal of this project is to:
+There are many online calculators that can find points in a given hand and maybe give tips, but more can be done. The goal of this project is to:
 * Take a starting cribbage hand as input
 * Calculate the average number of points obtained from each combination of card(s) dropped
-* Advise the user on other strategies they should take into account beyond just average points
+* Advise the user on other strategies they should take into account beyond just average points (not implemented yet)
 
-If you would like to test this calculator, run UserInterface.java in src/Main. This is still in development; I cannot guarentee the absense of bugs and it currently only calculates average points for each drop combination
+If you would like to test this calculator, run UserInterface.java in src/Main. This is still in development; I cannot guarantee the absence of bugs
 
 ## cribbage ##
 
