@@ -58,6 +58,7 @@ final class UserInterface {
 	 */
 	private static final ArrayList<Character> VALID_SUITS = new ArrayList<Character>(Arrays.asList('C', 'D', 'H', 'S'));
 
+	// @formatter:off
 	/**
 	 * A string that gives a short introduction to the program and asks the user to
 	 * input the number of players in the cribbage game (for determining the number
@@ -78,6 +79,7 @@ final class UserInterface {
 											+ "'10C': Ten of clubs\n"
 											+ "'KH': King of hearts\n"
 											+ "Enter each of the cards in your hand one by one below:\n";
+	// @formatter:on
 
 	/**
 	 * Initializes a UserInterface

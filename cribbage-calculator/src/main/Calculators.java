@@ -53,17 +53,22 @@ final class Calculators {
 		handWithStarter.add(starter);
 
 		/*
-		 * Calculating a power set is O(2^n), but n will always be 5 in this case and
-		 * this approach saves
+		 * Although calculating a power set is O(2^n), there are always only five cards
+		 * so this method is still efficient
+		 * 
+		 * Using a power set significantly reduces the amount of test cases, allowing
+		 * methods to be implemented much more concisely using only a few lines in most
+		 * cases
 		 */
 		HashSet<HashSet<Card>> combinations = powerSet(handWithStarter);
 
-		int points = 0;
-		points += fifteens(combinations);
-		points += multiples(handWithStarter);
-		points += runs(combinations);
-		points += flushes(hand, starter);
-		points += nobs(hand, starter);
+		// @formatter:off
+		int points = fifteens(combinations)
+		           + multiples(handWithStarter)
+		           + runs(combinations)
+		           + flushes(hand, starter)
+		           + nobs(hand, starter);
+		// @formatter:on
 		return points;
 	}
 
