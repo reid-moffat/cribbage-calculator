@@ -69,6 +69,11 @@ final class Calculators {
 		           + flushes(hand, starter)
 		           + nobs(hand, starter);
 		// @formatter:on
+		System.out.println("Fifteens: " + fifteens(combinations));
+		System.out.println("Multiples: " + multiples(handWithStarter));
+		System.out.println("Runs: " + runs(combinations));
+		System.out.println("Flushes: " + flushes(hand, starter));
+		System.out.println("Nobs: " + nobs(hand, starter));
 		return points;
 	}
 
@@ -139,7 +144,14 @@ final class Calculators {
 	 * @return the number of points obtained from runs
 	 */
 	private static int runs(HashSet<HashSet<Card>> cardCombinations) {
-		return cardCombinations.stream().filter(c -> c.size() >= 3).mapToInt(c -> isRun(c)).sum();
+		int score = cardCombinations.stream().filter(c -> c.size() == 5).mapToInt(Calculators::isRun).sum();
+		if (score == 0) {
+			score += cardCombinations.stream().filter(c -> c.size() == 4).mapToInt(Calculators::isRun).sum();
+			if (score == 0) {
+				score += cardCombinations.stream().filter(c -> c.size() == 3).mapToInt(Calculators::isRun).sum();
+			}
+		}
+		return score;
 	}
 
 	/**
@@ -257,12 +269,14 @@ final class Calculators {
 
 	public static void main(String[] args) {
 		HashSet<Card> hand = new HashSet<Card>();
+		hand.add(new Card(Rank.ACE, Suit.SPADES));
+		hand.add(new Card(Rank.TWO, Suit.SPADES));
+		hand.add(new Card(Rank.THREE, Suit.SPADES));
 		hand.add(new Card(Rank.FOUR, Suit.SPADES));
-		hand.add(new Card(Rank.JACK, Suit.HEARTS));
-		hand.add(new Card(Rank.FIVE, Suit.DIAMONDS));
-		hand.add(new Card(Rank.FIVE, Suit.CLUBS));
 
-		System.out.println(nobs(hand, new Card(Rank.FIVE, Suit.HEARTS)));
+		Card starter = new Card(Rank.FIVE, Suit.SPADES);
+
+		totalPoints(hand, starter);
 	}
 
 }
