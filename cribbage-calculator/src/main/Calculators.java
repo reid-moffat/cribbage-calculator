@@ -112,18 +112,17 @@ final class Calculators {
 	 * @return the number of points obtained from multiples
 	 */
 	private static int multiples(HashSet<Card> cards) {
+		// @formatter:off
 		/**
 		 * Counting points from each multiple is simple because a multiple of n cards is
 		 * worth n*n - n points:
 		 * 
-		 * 1: 1*1-1 = 0 points
-		 * 
-		 * 2: 2*2-2 = 2 points
-		 * 
-		 * 3: 3*3 - 3 = 3 points
-		 * 
-		 * 4: 4*4 - 4 = 12 points
+		 * Single: 1*1-1 = 0 points
+		 * Double: 2*2-2 = 2 points
+		 * Triple: 3*3 - 3 = 3 points
+		 * Quadruple: 4*4 - 4 = 12 points
 		 */
+		// @formatter:on
 		return countDuplicates(cards).values().stream().mapToInt(v -> v * v - v).sum();
 	}
 
