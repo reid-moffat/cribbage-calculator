@@ -69,11 +69,6 @@ final class Calculators {
 		           + flushes(hand, starter)
 		           + nobs(hand, starter);
 		// @formatter:on
-		System.out.println("Fifteens: " + fifteens(combinations));
-		System.out.println("Multiples: " + multiples(handWithStarter));
-		System.out.println("Runs: " + runs(combinations));
-		System.out.println("Flushes: " + flushes(hand, starter));
-		System.out.println("Nobs: " + nobs(hand, starter));
 		return points;
 	}
 
@@ -265,18 +260,6 @@ final class Calculators {
 			sets.add(set);
 		}
 		return sets;
-	}
-
-	public static void main(String[] args) {
-		HashSet<Card> hand = new HashSet<Card>();
-		hand.add(new Card(Rank.ACE, Suit.SPADES));
-		hand.add(new Card(Rank.TWO, Suit.SPADES));
-		hand.add(new Card(Rank.THREE, Suit.SPADES));
-		hand.add(new Card(Rank.FOUR, Suit.SPADES));
-
-		Card starter = new Card(Rank.FIVE, Suit.SPADES);
-
-		totalPoints(hand, starter);
 	}
 
 }
