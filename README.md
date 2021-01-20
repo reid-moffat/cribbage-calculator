@@ -7,9 +7,9 @@ There are many simple strategies that can be picked up and applied pretty quick 
 There are many online calculators that can find points in a given hand and maybe give tips, but more can be done. The goal of this project is to:
 * Take a starting cribbage hand as input
 * Calculate the average number of points obtained from each combination of card(s) dropped
-* Advise the user on other strategies they should take into account beyond just average points (not implemented yet)
+* Advise the user on other strategies they should take into account beyond just average points
 
-If you would like to test this calculator, run UserInterface.java in src/Main. This is still in development; I cannot guarantee the absence of bugs
+If you would like to test this calculator, run UserInterface.java in src/Main. Currently, this program only calculates average points
 
 ## cribbage ##
 
