@@ -23,9 +23,10 @@ import card.Suit;
 final class UserInterface {
 
 	/**
-	 * Stores a card object for all cards in a standard 52-card deck
+	 * A set the contains a {@code Card} object for each card in a standard 52-card
+	 * deck
 	 */
-	private HashSet<Card> cardPile;
+	private static final HashSet<Card> cardPile = initialzeDeck();
 
 	/**
 	 * A set of cards that represents a cribbage card hand
@@ -34,18 +35,35 @@ final class UserInterface {
 	 * Can represent the five or six cards a player starts out with or the four
 	 * cards that remain after dropping the chosen cards
 	 */
-	private HashSet<Card> hand;
+	private final HashSet<Card> hand;
 
 	/**
 	 * Used to get user input from the console
 	 */
-	private Scanner in;
+	private final Scanner in;
 
 	/**
-	 * A set of valid card ranks that the user can input
+	 * A set of valid card ranks used to check if a user input is valid
 	 * 
 	 * <p>
-	 * These are not part of the ranks in card.Rank, and a 10 is represented by 'T'
+	 * IMPORTANT: 10 is represented by 'T', although the user must input '10' for a
+	 * card with a value of 10. See the method {@code checkValidCard} for more info
+	 * 
+	 * <ul>
+	 * <li><code>1</code></li>
+	 * <li><code>2</code></li>
+	 * <li><code>3</code></li>
+	 * <li><code>4</code></li>
+	 * <li><code>5</code></li>
+	 * <li><code>6</code></li>
+	 * <li><code>7</code></li>
+	 * <li><code>8</code></li>
+	 * <li><code>9</code></li>
+	 * <li><code>T</code></li>
+	 * <li><code>J</code></li>
+	 * <li><code>Q</code></li>
+	 * <li><code>K</code></li>
+	 * </ul>
 	 */
 	private static final ArrayList<Character> VALID_RANKS = new ArrayList<Character>(
 			Arrays.asList('1', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K'));
@@ -78,28 +96,34 @@ final class UserInterface {
 											+ "'4S': Four of spades\n"
 											+ "'10C': Ten of clubs\n"
 											+ "'KH': King of hearts\n"
-											+ "Enter each of the cards in your hand one by one below:\n";
+											+ "Enter each of the cards in your hand one by one below and press enter:\n";
 	// @formatter:on
 
 	/**
-	 * Initializes a UserInterface
+	 * Initializes a cribbage calculator {@code UserInterface} object
+	 * 
+	 * <p>
+	 * Use the method {@code .run()} to run the UI
 	 */
 	public UserInterface() {
-		this.cardPile = new HashSet<Card>();
-		this.initialzeDeck();
-		hand = new HashSet<>();
+		hand = new HashSet<Card>();
 		this.in = new Scanner(System.in);
 	}
 
 	/**
-	 * Initializes the cardPile with a card object for each card in a standard deck
+	 * Returns a {@code HashSet} that includes each of the cards (as a {@code Card}
+	 * object) in a standard 52-card deck
+	 * 
+	 * @return a {@code HashSet} with all standard playing cards
 	 */
-	private void initialzeDeck() {
+	private static HashSet<Card> initialzeDeck() {
+		HashSet<Card> deck = new HashSet<Card>();
 		for (Rank r : Card.RANKS) {
 			for (Suit s : Card.SUITS) {
-				this.cardPile.add(new Card(r, s));
+				deck.add(new Card(r, s));
 			}
 		}
+		return deck;
 	}
 
 	/**
@@ -118,7 +142,7 @@ final class UserInterface {
 	 * 
 	 * <p>
 	 * Loops until a valid number of players is inputed (2-4), then calculates and
-	 * returns the number of starting cards associated with that number of players:
+	 * returns the number of cards each player starts the game with:
 	 * 
 	 * <ul>
 	 * <li>2 Players: 6 cards</li>
@@ -137,9 +161,7 @@ final class UserInterface {
 			numPlayers = in.nextLine();
 		}
 
-		int numCards = numPlayers.equals("2") ? 6 : 5;
-		System.out.println(numPlayers + " players: " + numCards + " cards to start");
-		return numCards;
+		return numPlayers.equals("2") ? 6 : 5;
 	}
 
 	/**
@@ -149,26 +171,17 @@ final class UserInterface {
 	 * @param numCards the number of cards to be inputed
 	 */
 	private void getCards(int numCards) {
+		System.out.println(numCards + " cards to start");
 		System.out.println(UserInterface.ENTER_CARDS);
 
-		boolean noDuplicates = false;
-		while (!noDuplicates) {
-			for (int i = 0; i < numCards; i++) {
-				String input = in.nextLine();
-				Card card = checkValidCard(input);
-				while (card == null) {
-					System.out.println("Invalid card, try again");
-					input = in.nextLine();
-					card = checkValidCard(input);
-				}
-				hand.add(card);
-				System.out.println("Card " + (i + 1) + ": " + card.toString() + "\n");
+		for (int i = 0; i < numCards; i++) {
+			Card card = checkValidCard(in.nextLine());
+			while (card == null || containsCard(card)) {
+				System.out.println("Invalid or duplicate card, input again:\n");
+				card = checkValidCard(in.nextLine());
 			}
-			noDuplicates = hand.size() == numCards;
-
-			if (!noDuplicates) {
-				System.out.println("Duplicate card in hand, input cards again:\n");
-			}
+			hand.add(card);
+			System.out.println("Card " + (i + 1) + ": " + card.toString() + "\n");
 		}
 
 		this.in.close();
@@ -184,13 +197,13 @@ final class UserInterface {
 	 */
 	private void printAveragePoints() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Average points for each drop combination:");
 
 		/* With 6 cards, 2 must be dropped */
 		if (this.hand.size() == 6) {
+			sb.append("Average points for each drop combination:");
 			for (Card[] combination : subset2(this.hand)) {
 				double averagePoints = 0;
-				for (Card starterCard : this.cardPile) {
+				for (Card starterCard : cardPile) {
 					averagePoints += this.containsCard(starterCard) ? 0
 							: Calculators.totalPoints(removeCards(this.hand, combination), starterCard);
 				}
@@ -198,11 +211,12 @@ final class UserInterface {
 						+ Math.round(100 * (averagePoints / 46)) / 100.0);
 			}
 		} else { /* With 5 cards, only one needs to be dropped */
+			sb.append("Average points for each card dropped:");
 			HashSet<Card> droppedHand = new HashSet<Card>(this.hand);
 			for (Card droppedCard : this.hand) {
 				droppedHand.remove(droppedCard);
 				double averagePoints = 0;
-				for (Card starterCard : this.cardPile) {
+				for (Card starterCard : cardPile) {
 					averagePoints += this.containsCard(starterCard) ? 0
 							: Calculators.totalPoints(droppedHand, starterCard);
 				}
@@ -223,9 +237,9 @@ final class UserInterface {
 	 * 
 	 * <ul>
 	 * <li>"3d": Three of diamonds</li>
-	 * <li>"js": Jack of spades</li>
+	 * <li>"jS": Jack of spades</li>
 	 * <li>"10c": Ten of clubs</li>
-	 * <li>"1h": Ace of hearts</li>
+	 * <li>"1H": Ace of hearts</li>
 	 * </ul>
 	 * 
 	 * @param card a string
@@ -233,24 +247,15 @@ final class UserInterface {
 	 *         otherwise
 	 */
 	private static Card checkValidCard(String card) {
+		card = card.toUpperCase(); // Not case sensitive
 		/*
 		 * If a card is a ten, change the "10" part of the string to "T" This makes it
 		 * so all valid card strings have a length of 2 for easier use
 		 */
-		if (card.length() == 3) {
-			if (card.charAt(0) == '1' && card.charAt(1) == '0') {
-				card = "T" + card.charAt(2);
-			} else {
-				return null;
-			}
-		} else if (card.length() == 2) {
-			card = card.toUpperCase();
-			Character rank = card.charAt(0);
-			Character suit = card.charAt(1);
-			if (!VALID_RANKS.contains(rank) || !VALID_SUITS.contains(suit)) {
-				return null;
-			}
-		} else {
+		if (card.length() == 3 && card.charAt(0) == '1' && card.charAt(1) == '0') {
+			card = "T" + card.charAt(2);
+		} else if (card.length() != 2 || !VALID_RANKS.contains(card.charAt(0))
+				|| !VALID_SUITS.contains(card.charAt(1))) {
 			return null;
 		}
 
@@ -303,9 +308,8 @@ final class UserInterface {
 	 * @return a new HashSet without the specified cards
 	 */
 	private static HashSet<Card> removeCards(HashSet<Card> hand, Card... cards) {
-		return new HashSet<Card>(
-				hand.stream().filter(card -> !Arrays.asList(cards).stream().anyMatch(c -> c.equals(card)))
-						.collect(Collectors.toSet()));
+		return new HashSet<Card>(hand.stream().filter(card -> !Arrays.asList(cards).stream().anyMatch(card::equals))
+				.collect(Collectors.toSet()));
 	}
 
 	public static void main(String[] args) {
