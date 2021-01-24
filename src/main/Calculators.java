@@ -139,6 +139,16 @@ final class Calculators {
 	 * @return the number of points obtained from runs
 	 */
 	private static int runs(HashSet<HashSet<Card>> cardCombinations) {
+		// @formatter:off
+		/*
+		 * Each card can be part of multiple runs of the same length, but not not
+		 * multiple runs of different lengths. The longest run always trumps lower length runs
+		 * 
+		 * Take a hand containing cards with the ranks 2-3-3-4-5 for example:
+		 * -There are eight points from runs: 2-3-4-5 and 2-3-4-5 (with the other 3)
+		 * -The combination 2-3-4 is not counted as a run because 2-3-4-5 trumps it
+		 */
+		// @formatter:on
 		int score = cardCombinations.stream().filter(c -> c.size() == 5).mapToInt(Calculators::isRun).sum();
 		if (score == 0) {
 			score += cardCombinations.stream().filter(c -> c.size() == 4).mapToInt(Calculators::isRun).sum();
@@ -157,8 +167,11 @@ final class Calculators {
 	 *         cards do form a run
 	 */
 	private static int isRun(HashSet<Card> cards) {
+		// Creates a sorted list of card rank numbers (ex: [2, 5, 5, 11, 13])
 		ArrayList<Integer> values = new ArrayList<Integer>(
 				cards.stream().mapToInt(card -> card.getRankNumber()).sorted().boxed().collect(Collectors.toList()));
+		// If all of the rank numbers are consecutive, the length of the run (# of
+		// points) is returned
 		return IntStream.range(0, values.size() - 1).anyMatch(i -> values.get(i + 1) != values.get(i) + 1) ? 0
 				: values.size();
 	}
@@ -179,7 +192,7 @@ final class Calculators {
 	 */
 	private static int flushes(HashSet<Card> hand, Card starter) {
 		HashSet<Suit> uniqueSuits = new HashSet<Suit>(hand.stream().map(Card::getSuit).collect(Collectors.toSet()));
-		return uniqueSuits.size() == 1 ? 4 + (!uniqueSuits.add(starter.getSuit()) ? 1 : 0) : 0;
+		return uniqueSuits.size() == 1 ? 4 + (uniqueSuits.add(starter.getSuit()) ? 0 : 1) : 0;
 	}
 
 	/**
