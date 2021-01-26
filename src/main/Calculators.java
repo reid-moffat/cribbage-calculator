@@ -1,9 +1,9 @@
 package main;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -85,7 +85,7 @@ final class Calculators {
 	 * @return the number of points obtained from fifteens
 	 */
 	private static int fifteens(HashSet<HashSet<Card>> cardCombinations) {
-		return cardCombinations.stream().filter(c -> c.size() >= 2).mapToInt(c -> isFifteen(c)).sum();
+		return cardCombinations.stream().mapToInt(Calculators::isFifteen).sum();
 	}
 
 	/**
@@ -169,7 +169,7 @@ final class Calculators {
 	private static int isRun(HashSet<Card> cards) {
 		// Creates a sorted list of card rank numbers (ex: [2, 5, 5, 11, 13])
 		ArrayList<Integer> values = new ArrayList<Integer>(
-				cards.stream().mapToInt(card -> card.getRankNumber()).sorted().boxed().collect(Collectors.toList()));
+				cards.stream().mapToInt(Card::getRankNumber).sorted().boxed().collect(Collectors.toList()));
 		// If all of the rank numbers are consecutive, the length of the run (# of
 		// points) is returned
 		return IntStream.range(0, values.size() - 1).anyMatch(i -> values.get(i + 1) != values.get(i) + 1) ? 0
@@ -228,20 +228,8 @@ final class Calculators {
 	 * @param cards an array of card objects
 	 * @return a HashMap that maps each rank number to the number of occurrences
 	 */
-	private static HashMap<Integer, Integer> countDuplicates(HashSet<Card> cards) {
-		HashMap<Integer, Integer> duplicates = new HashMap<Integer, Integer>();
-
-		for (Card c : cards) {
-			Integer cardRankNumber = c.getRankNumber();
-			if (duplicates.containsKey(cardRankNumber)) {
-				Integer oldAmount = duplicates.get(cardRankNumber);
-				duplicates.replace(cardRankNumber, Integer.valueOf(oldAmount + 1));
-			} else {
-				duplicates.put(cardRankNumber, Integer.valueOf(1));
-			}
-		}
-
-		return duplicates;
+	private static Map<Integer, Integer> countDuplicates(HashSet<Card> cards) {
+		return cards.stream().collect(Collectors.groupingBy(Card::getRankNumber, Collectors.summingInt(x -> 1)));
 	}
 
 	/**
