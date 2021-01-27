@@ -23,5 +23,5 @@
 hs_err_pid*
 
 # javadoc and bin files
-src/doc/
+doc/
 bin/
