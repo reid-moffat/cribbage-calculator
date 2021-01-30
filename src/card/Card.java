@@ -16,7 +16,7 @@ import java.util.Objects;
  * 
  * @author Reid Moffat
  */
-public final class Card implements Comparable<Card> {
+public final class Card implements Comparable<Card>, PlayingCard {
 
 	/**
 	 * An array of all card ranks in order
@@ -39,12 +39,6 @@ public final class Card implements Comparable<Card> {
 	private Suit suit;
 
 	/**
-	 * Creates an 'empty' card object, without a rank or suit
-	 */
-	public Card() {
-	}
-
-	/**
 	 * Initializes the card with a rank and suit
 	 * 
 	 * @param rank the card's rank
@@ -61,28 +55,10 @@ public final class Card implements Comparable<Card> {
 	 * @param rank the card's new rank
 	 * @param suit the card's new suit
 	 */
+	@Override
 	public void setState(Rank rank, Suit suit) {
 		this.rank = rank;
 		this.suit = suit;
-	}
-
-	/**
-	 * Returns the number of ranks the current card is above the other card
-	 * 
-	 * <p>
-	 * For example,
-	 * 
-	 * <ul>
-	 * <li>Comparing a jack to a five returns 6</li>
-	 * <li>Comparing an ace to a six returns -5</li>
-	 * <li>Comparing a nine to a king returns -4</li>
-	 * </ul>
-	 * 
-	 * @return the number of ranks the current card is above the other card
-	 */
-	@Override
-	public int compareTo(Card other) {
-		return this.getRankNumber() - other.getRankNumber();
 	}
 
 	/**
@@ -141,7 +117,29 @@ public final class Card implements Comparable<Card> {
 	public int getRankNumber() {
 		return this.rank.getRankNumber();
 	}
+	
+	/**
+	 * Returns the number of ranks the current card is above the other card
+	 * 
+	 * <p>
+	 * For example,
+	 * 
+	 * <ul>
+	 * <li>Comparing a jack to a five returns 6</li>
+	 * <li>Comparing an ace to a six returns -5</li>
+	 * <li>Comparing a nine to a king returns -4</li>
+	 * </ul>
+	 * 
+	 * @return the number of ranks the current card is above the other card
+	 */
+	@Override
+	public int compareTo(Card other) {
+		return this.getRankNumber() - other.getRankNumber();
+	}
 
+	/**
+	 * Returns a hash code value for this card
+	 */
 	@Override
 	public int hashCode() {
 		return Objects.hash(rank, suit);
@@ -163,8 +161,19 @@ public final class Card implements Comparable<Card> {
 	}
 
 	/**
-	 * Returns the English way of describing this card (such as "Jack of hearts",
-	 * "Ace of spades", etc)
+	 * Returns the English description this card
+	 * 
+	 * <p>
+	 * The structure of the string is "<i>Rank</i> of <i>suit</i>"
+	 * 
+	 * <p>
+	 * Examples:
+	 * <ul>
+	 * <li>"Ace of spades"</li>
+	 * <li>"Three of clubs"</li>
+	 * <li>"Eight of hearts"</li>
+	 * <li>"Queen of diamonds"</li>
+	 * </ul>
 	 */
 	@Override
 	public String toString() {
