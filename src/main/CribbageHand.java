@@ -12,44 +12,96 @@ import card.Rank;
 import card.Suit;
 
 /**
- * The utility class {@code Calculators} contains methods for calculating the
- * score of a cribbage hand with a starter card
+ * The class {@code CribbageHand} represents a player's hand in the game of
+ * cribbage
  * 
  * <p>
- * Passing a HashSet of four cards and a starter card in {@code totalPoints()}
- * will return the total number of cribbage points in the given hand
+ * Initializing this class requires a {@code HashSet} of {@code Card} objects.
+ * The hand's cards can be modified using the methods {@code setHand},
+ * {@code add}, {@code clear} and {@code remove}
+ * 
+ * <p>
+ * The total points obtained from this cribbage hand can be determined by
+ * passing a starter {@code Card} object through {@code totalPoints}
  * 
  * @author Reid Moffat
  */
 final class CribbageHand implements CribbageCombinations {
 
+	/**
+	 * A set of unique playing {@code Cards}. Must include 4 cards for points to be
+	 * calculated
+	 * 
+	 * <p>
+	 * Does not include the starter {@code Card}
+	 */
 	private HashSet<Card> hand;
 
+	/**
+	 * The starter {@code Card}
+	 * 
+	 * <p>
+	 * Kept separate from the {@code Card} hand due to points from runs and nobs
+	 */
 	private Card starter;
 
+	/**
+	 * A set that includes the hand of four {@code Cards} and the starter card
+	 */
 	private HashSet<Card> handWithStarter;
 
+	/**
+	 * Every combination of {@code Card} objects in the hand and starter
+	 * {@code Card}
+	 * 
+	 * <p>
+	 * More formally, the power set of {@code handWithStarter}
+	 */
 	private HashSet<HashSet<Card>> cardCombinations;
 
+	/**
+	 * Initializes this {@code CribbageHand} with a set of {@code Cards}
+	 * 
+	 * @param hand a {@code Set} of {@code Card} objects (not including the starter
+	 *             card)
+	 */
 	public CribbageHand(HashSet<Card> hand) {
 		this.hand = hand;
 	}
 
+	/**
+	 * Sets the cribbage hand to a copy of the specified hand
+	 * 
+	 * @param hand a {@code Set} of {@code Card} objects
+	 */
 	@Override
 	public void setHand(HashSet<Card> hand) {
-		this.hand = hand;
+		this.hand = new HashSet<Card>(hand);
 	}
 
+	/**
+	 * Adds a {@code Card} object to this hand
+	 * 
+	 * @param card a {@code Card} object
+	 */
 	@Override
 	public void add(Card card) {
 		this.hand.add(card);
 	}
 
+	/**
+	 * Removes all {@code Card} objects from this hand
+	 */
 	@Override
 	public void clear() {
 		this.hand.clear();
 	}
 
+	/**
+	 * Removes a {@code Card} object from this hand
+	 * 
+	 * @param card a {@code Card} object
+	 */
 	@Override
 	public void remove(Card card) {
 		if (!this.hand.remove(card)) {
@@ -57,15 +109,34 @@ final class CribbageHand implements CribbageCombinations {
 		}
 	}
 
+	/**
+	 * Returns the number of {@code Card} objects in this hand
+	 * 
+	 * @return the number of {@code Card} objects in this hand
+	 */
 	public int size() {
 		return this.hand.size();
 	}
 
+	/**
+	 * Returns a copy of this hand
+	 * 
+	 * @return a copy of this hand
+	 */
 	@Override
 	public HashSet<Card> getCards() {
 		return new HashSet<Card>(hand);
 	}
 
+	/**
+	 * Some fields needs to be refreshed if the hand changes before performing a
+	 * total point calculation
+	 * 
+	 * <p>
+	 * This method must always be called in totalPoints()
+	 * 
+	 * @param starter
+	 */
 	private void refreshHand(Card starter) {
 		this.starter = starter;
 
@@ -91,7 +162,6 @@ final class CribbageHand implements CribbageCombinations {
 	 * A valid cribbage hand is defined as a {@code HashSet} containing four
 	 * {@code Card} objects
 	 * 
-	 * @param hand    a valid cribbage hand
 	 * @param starter the starter card
 	 * @return the total number of points in this cribbage hand with the given
 	 *         starter card
@@ -113,12 +183,10 @@ final class CribbageHand implements CribbageCombinations {
 	 * Returns the number of points obtained from fifteens
 	 * 
 	 * <p>
-	 * Each combination of cards that add up to 15 is worth two points. Any number
-	 * of cards can be used, and cards may be used for multiple fifteens. All face
-	 * cards are worth 10 when calculating fifteens
+	 * Each unique combination of cards that add up to 15 is worth two points. Any
+	 * number of cards can be used for each combination, and cards may be used for
+	 * multiple fifteens. All face cards are worth 10 when calculating fifteens
 	 * 
-	 * @param cardCombinations the power set of a set containing a cribbage hand and
-	 *                         starter card
 	 * @return the number of points obtained from fifteens
 	 */
 	private int fifteens() {
@@ -142,10 +210,9 @@ final class CribbageHand implements CribbageCombinations {
 	 * <p>
 	 * Multiples are a double (2 points), triple (6 points) or quadruple (12 points)
 	 * of one rank of card. Face cards are not considered the same for multiples; a
-	 * ten and a queen both have a value of 10 but they would not give points for a
-	 * double
+	 * ten and a queen both have a rank value of 10 but they would not give points
+	 * for a double
 	 * 
-	 * @param cards a {@code HashSet} of {@code Card} objects
 	 * @return the number of points obtained from multiples
 	 */
 	private int multiples() {
@@ -169,10 +236,9 @@ final class CribbageHand implements CribbageCombinations {
 	 * <p>
 	 * A run is a sequence of three (3 points), four (4 points) or five (5 points)
 	 * cards with consecutive ranks. Suit does not matter, and cards can be part of
-	 * multiple runs
+	 * multiple runs (but only the higest run is counted; a run of four is only four
+	 * points, not two runs of three)
 	 * 
-	 * @param cardCombinations the power set of a set containing a cribbage hand and
-	 *                         starter card
 	 * @return the number of points obtained from runs
 	 */
 	private int runs() {
@@ -223,8 +289,6 @@ final class CribbageHand implements CribbageCombinations {
 	 * obtained. Note that if only three cards in the player's hand plus the starter
 	 * card have the same suit, this is not a flush
 	 * 
-	 * @param hand    a valid cribbage hand
-	 * @param starter the starter card
 	 * @return the number of points obtained from flushes
 	 */
 	private int flushes() {
@@ -241,8 +305,6 @@ final class CribbageHand implements CribbageCombinations {
 	 * One point is obtained from nobs if the player's hand has a jack of the same
 	 * suit as the starter card
 	 * 
-	 * @param hand    a valid cribbage hand
-	 * @param starter the starter card
 	 * @return the number of points obtained from nobs
 	 */
 	private int nobs() {
