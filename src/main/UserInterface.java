@@ -217,6 +217,7 @@ final class UserInterface {
 				droppedHand.remove(droppedCard);
 				double averagePoints = 0;
 				for (Card starterCard : cardPile) {
+					
 					averagePoints += this.containsCard(starterCard) ? 0
 							: Calculators.totalPoints(droppedHand, starterCard);
 				}

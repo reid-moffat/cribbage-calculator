@@ -21,7 +21,7 @@ import card.Suit;
  * 
  * @author Reid Moffat
  */
-final class PointCalculator implements CribbageCombinations {
+final class CribbageHand implements CribbageCombinations {
 
 	private final HashSet<Card> hand;
 
@@ -31,7 +31,7 @@ final class PointCalculator implements CribbageCombinations {
 
 	private final HashSet<HashSet<Card>> cardCombinations;
 
-	protected PointCalculator(HashSet<Card> hand, Card starter) {
+	protected CribbageHand(HashSet<Card> hand, Card starter) {
 		this.hand = hand;
 		this.starter = starter;
 
