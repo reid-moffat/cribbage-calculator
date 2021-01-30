@@ -20,8 +20,7 @@ import card.Card;
  * @author Reid Moffat
  */
 public interface CribbageCombinations {
-
-	public void add(HashSet<Card> Card);
+	public void setHand(HashSet<Card> hand);
 	
 	public void add(Card card);
 	
@@ -29,15 +28,7 @@ public interface CribbageCombinations {
 	
 	public void remove(Card card);
 	
-	public int totalPoints();
-
-	public int fifteens();
-
-	public int multiples();
-
-	public int runs();
-
-	public int flushes();
-
-	public int nobs();
+	public HashSet<Card> getCards();
+	
+	public int totalPoints(Card starter);
 }

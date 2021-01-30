@@ -23,21 +23,55 @@ import card.Suit;
  */
 final class CribbageHand implements CribbageCombinations {
 
-	private final HashSet<Card> hand;
+	private HashSet<Card> hand;
 
-	private final Card starter;
+	private Card starter;
 
-	private final HashSet<Card> handWithStarter;
+	private HashSet<Card> handWithStarter;
 
-	private final HashSet<HashSet<Card>> cardCombinations;
+	private HashSet<HashSet<Card>> cardCombinations;
 
-	protected CribbageHand(HashSet<Card> hand, Card starter) {
+	public CribbageHand(HashSet<Card> hand) {
 		this.hand = hand;
+	}
+	
+	@Override
+	public void setHand(HashSet<Card> hand) {
+		this.hand = hand;
+	}
+
+	@Override
+	public void add(Card card) {
+		this.hand.add(card);
+	}
+
+	@Override
+	public void clear() {
+		this.hand.clear();
+	}
+
+	@Override
+	public void remove(Card card) {
+		if (!this.hand.remove(card)) {
+			throw new IllegalArgumentException("card not present in hand");
+		}
+	}
+	
+	public int size() {
+		return this.hand.size();
+	}
+	
+	@Override
+	public HashSet<Card> getCards() {
+		return new HashSet<Card>(hand);
+	}
+	
+	private void refreshHand(Card starter) {
 		this.starter = starter;
-
+		
 		this.handWithStarter = new HashSet<Card>(hand);
-		this.handWithStarter.add(starter);
-
+		this.handWithStarter.add(this.starter);
+		
 		/*
 		 * Although calculating a power set is O(2^n), there are always only five cards
 		 * so this method is still efficient
@@ -47,22 +81,6 @@ final class CribbageHand implements CribbageCombinations {
 		 * cases
 		 */
 		this.cardCombinations = powerSet(handWithStarter);
-	}
-	
-	@Override
-	public void add(HashSet<Card> Card) {
-	}
-
-	@Override
-	public void add(Card card) {
-	}
-
-	@Override
-	public void clear() {
-	}
-
-	@Override
-	public void remove(Card card) {
 	}
 
 	/**
@@ -82,13 +100,13 @@ final class CribbageHand implements CribbageCombinations {
 	 *                                  is {@code null}
 	 */
 	@Override
-	public int totalPoints() {
+	public int totalPoints(Card starter) {
 		if (hand == null || starter == null || hand.size() != 4) {
 			throw new IllegalArgumentException("illegal hand and/or starter card");
 		}
+		this.refreshHand(starter);
 
-		int points = fifteens() + multiples() + runs() + flushes() + nobs();
-		return points;
+		return fifteens() + multiples() + runs() + flushes() + nobs();
 	}
 
 	/**
@@ -103,8 +121,7 @@ final class CribbageHand implements CribbageCombinations {
 	 *                         starter card
 	 * @return the number of points obtained from fifteens
 	 */
-	@Override
-	public int fifteens() {
+	private int fifteens() {
 		return this.cardCombinations.stream().mapToInt(this::isFifteen).sum();
 	}
 
@@ -131,8 +148,7 @@ final class CribbageHand implements CribbageCombinations {
 	 * @param cards a {@code HashSet} of {@code Card} objects
 	 * @return the number of points obtained from multiples
 	 */
-	@Override
-	public int multiples() {
+	private int multiples() {
 		// @formatter:off
 		/**
 		 * Counting points from each multiple is simple because a multiple of n cards is
@@ -159,8 +175,7 @@ final class CribbageHand implements CribbageCombinations {
 	 *                         starter card
 	 * @return the number of points obtained from runs
 	 */
-	@Override
-	public int runs() {
+	private int runs() {
 		// @formatter:off
 		/*
 		 * Each card can be part of multiple runs of the same length, but not not
@@ -212,8 +227,7 @@ final class CribbageHand implements CribbageCombinations {
 	 * @param starter the starter card
 	 * @return the number of points obtained from flushes
 	 */
-	@Override
-	public int flushes() {
+	private int flushes() {
 		HashSet<Suit> uniqueSuits = new HashSet<Suit>(
 				this.hand.stream().map(Card::getSuit).collect(Collectors.toSet()));
 		return uniqueSuits.size() == 1 ? 4 + (uniqueSuits.add(this.starter.getSuit()) ? 0 : 1) : 0;
@@ -231,8 +245,7 @@ final class CribbageHand implements CribbageCombinations {
 	 * @param starter the starter card
 	 * @return the number of points obtained from nobs
 	 */
-	@Override
-	public int nobs() {
+	private int nobs() {
 		return this.hand.stream().filter(c -> c.getRank() == Rank.JACK).map(Card::getSuit)
 				.anyMatch(this.starter.getSuit()::equals) ? 1 : 0;
 	}
@@ -258,7 +271,7 @@ final class CribbageHand implements CribbageCombinations {
 	}
 
 	/**
-	 * Returns the power set of a given set
+	 * Returns the power set of a given {@code HashSet}
 	 * 
 	 * <p>
 	 * Adapted from <a href=
