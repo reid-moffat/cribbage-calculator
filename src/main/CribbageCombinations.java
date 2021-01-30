@@ -21,6 +21,14 @@ import card.Card;
  */
 public interface CribbageCombinations {
 
+	public void add(HashSet<Card> Card);
+	
+	public void add(Card card);
+	
+	public void clear();
+	
+	public void remove(Card card);
+	
 	public int totalPoints();
 
 	public int fifteens();

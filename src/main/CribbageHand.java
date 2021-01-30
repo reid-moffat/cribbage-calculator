@@ -48,6 +48,22 @@ final class CribbageHand implements CribbageCombinations {
 		 */
 		this.cardCombinations = powerSet(handWithStarter);
 	}
+	
+	@Override
+	public void add(HashSet<Card> Card) {
+	}
+
+	@Override
+	public void add(Card card) {
+	}
+
+	@Override
+	public void clear() {
+	}
+
+	@Override
+	public void remove(Card card) {
+	}
 
 	/**
 	 * Calculates the sum of point combinations for a valid cribbage hand plus
@@ -65,6 +81,7 @@ final class CribbageHand implements CribbageCombinations {
 	 *                                  four {@code Card} objects or {@code starter}
 	 *                                  is {@code null}
 	 */
+	@Override
 	public int totalPoints() {
 		if (hand == null || starter == null || hand.size() != 4) {
 			throw new IllegalArgumentException("illegal hand and/or starter card");
@@ -86,6 +103,7 @@ final class CribbageHand implements CribbageCombinations {
 	 *                         starter card
 	 * @return the number of points obtained from fifteens
 	 */
+	@Override
 	public int fifteens() {
 		return this.cardCombinations.stream().mapToInt(this::isFifteen).sum();
 	}
@@ -113,6 +131,7 @@ final class CribbageHand implements CribbageCombinations {
 	 * @param cards a {@code HashSet} of {@code Card} objects
 	 * @return the number of points obtained from multiples
 	 */
+	@Override
 	public int multiples() {
 		// @formatter:off
 		/**
@@ -140,6 +159,7 @@ final class CribbageHand implements CribbageCombinations {
 	 *                         starter card
 	 * @return the number of points obtained from runs
 	 */
+	@Override
 	public int runs() {
 		// @formatter:off
 		/*
@@ -192,6 +212,7 @@ final class CribbageHand implements CribbageCombinations {
 	 * @param starter the starter card
 	 * @return the number of points obtained from flushes
 	 */
+	@Override
 	public int flushes() {
 		HashSet<Suit> uniqueSuits = new HashSet<Suit>(
 				this.hand.stream().map(Card::getSuit).collect(Collectors.toSet()));
@@ -210,6 +231,7 @@ final class CribbageHand implements CribbageCombinations {
 	 * @param starter the starter card
 	 * @return the number of points obtained from nobs
 	 */
+	@Override
 	public int nobs() {
 		return this.hand.stream().filter(c -> c.getRank() == Rank.JACK).map(Card::getSuit)
 				.anyMatch(this.starter.getSuit()::equals) ? 1 : 0;
