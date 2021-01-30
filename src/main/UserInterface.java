@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Scanner;
-import java.util.stream.Collectors;
 
 import card.Card;
 import card.Rank;
@@ -29,13 +28,12 @@ final class UserInterface {
 	private static final HashSet<Card> cardPile = initialzeDeck();
 
 	/**
-	 * A set of cards that represents a cribbage card hand
+	 * A set of 5 or 6 cards the player is dealt at the beginning of the round
 	 * 
 	 * <p>
-	 * Can represent the five or six cards a player starts out with or the four
-	 * cards that remain after dropping the chosen cards
+	 * 5 Cards is for 3 or 4 players, 6 cards is for 2 players
 	 */
-	private final HashSet<Card> hand;
+	private final HashSet<Card> dealthHand;
 
 	/**
 	 * Used to get user input from the console
@@ -106,7 +104,7 @@ final class UserInterface {
 	 * Use the method {@code .run()} to run the UI
 	 */
 	public UserInterface() {
-		hand = new HashSet<Card>();
+		this.dealthHand = new HashSet<Card>();
 		this.in = new Scanner(System.in);
 	}
 
@@ -180,7 +178,7 @@ final class UserInterface {
 				System.out.println("Invalid or duplicate card, input again:\n");
 				card = checkValidCard(in.nextLine());
 			}
-			hand.add(card);
+			this.dealthHand.add(card);
 			System.out.println("Card " + (i + 1) + ": " + card.toString() + "\n");
 		}
 
@@ -197,32 +195,38 @@ final class UserInterface {
 	 */
 	private void printAveragePoints() {
 		StringBuilder sb = new StringBuilder();
+		CribbageHand hand = new CribbageHand(this.dealthHand);
 
 		/* With 6 cards, 2 must be dropped */
-		if (this.hand.size() == 6) {
+		if (hand.size() == 6) {
 			sb.append("Average points for each drop combination:");
-			for (Card[] combination : subset2(this.hand)) {
+			for (Card[] combination : subset2(hand.getCards())) {
 				double averagePoints = 0;
+				hand.remove(combination[0]);
+				hand.remove(combination[1]);
 				for (Card starterCard : cardPile) {
-					averagePoints += this.containsCard(starterCard) ? 0
-							: Calculators.totalPoints(removeCards(this.hand, combination), starterCard);
+					if (!this.containsCard(starterCard) && !starterCard.equals(combination[0])
+							&& !starterCard.equals(combination[1])) {
+						averagePoints += hand.totalPoints(starterCard);
+					}
 				}
 				sb.append("\n" + combination[0].toString() + " and " + combination[1].toString() + ": "
 						+ Math.round(100 * (averagePoints / 46)) / 100.0);
+				hand.add(combination[0]);
+				hand.add(combination[1]);
 			}
 		} else { /* With 5 cards, only one needs to be dropped */
 			sb.append("Average points for each card dropped:");
-			HashSet<Card> droppedHand = new HashSet<Card>(this.hand);
-			for (Card droppedCard : this.hand) {
-				droppedHand.remove(droppedCard);
+			for (Card droppedCard : hand.getCards()) {
 				double averagePoints = 0;
+				hand.remove(droppedCard);
 				for (Card starterCard : cardPile) {
-					
-					averagePoints += this.containsCard(starterCard) ? 0
-							: Calculators.totalPoints(droppedHand, starterCard);
+					if (!this.containsCard(starterCard) && !starterCard.equals(droppedCard)) {
+						averagePoints += hand.totalPoints(starterCard);
+					}
 				}
 				sb.append("\n" + droppedCard.toString() + ": " + Math.round(100 * (averagePoints / 47)) / 100.0);
-				droppedHand.add(droppedCard);
+				hand.add(droppedCard);
 			}
 		}
 		System.out.println(sb.toString());
@@ -274,7 +278,7 @@ final class UserInterface {
 	 * @return true if the card is in the player's hand, false otherwise
 	 */
 	private boolean containsCard(Card card) {
-		return this.hand.contains(card);
+		return this.dealthHand.contains(card);
 	}
 
 	/**
@@ -295,22 +299,6 @@ final class UserInterface {
 			}
 		}
 		return subsets;
-	}
-
-	/**
-	 * Returns a new {@code HashSet} without the specified cards
-	 * 
-	 * <p>
-	 * Cards that are not in the set are ignored, attempting to remove a
-	 * {@code Card} that is not in the set will not throw an exception
-	 * 
-	 * @param hand  a {@code HashSet} of cards
-	 * @param cards variable amount of cards to be removed
-	 * @return a new HashSet without the specified cards
-	 */
-	private static HashSet<Card> removeCards(HashSet<Card> hand, Card... cards) {
-		return new HashSet<Card>(hand.stream().filter(card -> !Arrays.asList(cards).stream().anyMatch(card::equals))
-				.collect(Collectors.toSet()));
 	}
 
 	public static void main(String[] args) {

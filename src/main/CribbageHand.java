@@ -34,7 +34,7 @@ final class CribbageHand implements CribbageCombinations {
 	public CribbageHand(HashSet<Card> hand) {
 		this.hand = hand;
 	}
-	
+
 	@Override
 	public void setHand(HashSet<Card> hand) {
 		this.hand = hand;
@@ -56,22 +56,22 @@ final class CribbageHand implements CribbageCombinations {
 			throw new IllegalArgumentException("card not present in hand");
 		}
 	}
-	
+
 	public int size() {
 		return this.hand.size();
 	}
-	
+
 	@Override
 	public HashSet<Card> getCards() {
 		return new HashSet<Card>(hand);
 	}
-	
+
 	private void refreshHand(Card starter) {
 		this.starter = starter;
-		
+
 		this.handWithStarter = new HashSet<Card>(hand);
 		this.handWithStarter.add(this.starter);
-		
+
 		/*
 		 * Although calculating a power set is O(2^n), there are always only five cards
 		 * so this method is still efficient
