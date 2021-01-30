@@ -114,6 +114,7 @@ final class CribbageHand implements CribbageCombinations {
 	 * 
 	 * @return the number of {@code Card} objects in this hand
 	 */
+	@Override
 	public int size() {
 		return this.hand.size();
 	}
