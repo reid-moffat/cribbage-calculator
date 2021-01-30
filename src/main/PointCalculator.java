@@ -21,12 +21,32 @@ import card.Suit;
  * 
  * @author Reid Moffat
  */
-final class Calculators {
+final class PointCalculator implements CribbageCombinations {
 
-	/**
-	 * Calculators is a utility class, a private constructor prevents instantiation
-	 */
-	private Calculators() {
+	private final HashSet<Card> hand;
+
+	private final Card starter;
+
+	private final HashSet<Card> handWithStarter;
+
+	private final HashSet<HashSet<Card>> cardCombinations;
+
+	protected PointCalculator(HashSet<Card> hand, Card starter) {
+		this.hand = hand;
+		this.starter = starter;
+
+		this.handWithStarter = new HashSet<Card>(hand);
+		this.handWithStarter.add(starter);
+
+		/*
+		 * Although calculating a power set is O(2^n), there are always only five cards
+		 * so this method is still efficient
+		 * 
+		 * Using a power set significantly reduces the amount of test cases, allowing
+		 * methods to be implemented much more concisely using only a few lines in most
+		 * cases
+		 */
+		this.cardCombinations = powerSet(handWithStarter);
 	}
 
 	/**
@@ -45,30 +65,12 @@ final class Calculators {
 	 *                                  four {@code Card} objects or {@code starter}
 	 *                                  is {@code null}
 	 */
-	public static int totalPoints(HashSet<Card> hand, Card starter) {
+	public int totalPoints() {
 		if (hand == null || starter == null || hand.size() != 4) {
 			throw new IllegalArgumentException("illegal hand and/or starter card");
 		}
-		HashSet<Card> handWithStarter = new HashSet<Card>(hand);
-		handWithStarter.add(starter);
 
-		/*
-		 * Although calculating a power set is O(2^n), there are always only five cards
-		 * so this method is still efficient
-		 * 
-		 * Using a power set significantly reduces the amount of test cases, allowing
-		 * methods to be implemented much more concisely using only a few lines in most
-		 * cases
-		 */
-		HashSet<HashSet<Card>> combinations = powerSet(handWithStarter);
-
-		// @formatter:off
-		int points = fifteens(combinations)
-		           + multiples(handWithStarter)
-		           + runs(combinations)
-		           + flushes(hand, starter)
-		           + nobs(hand, starter);
-		// @formatter:on
+		int points = fifteens() + multiples() + runs() + flushes() + nobs();
 		return points;
 	}
 
@@ -84,8 +86,8 @@ final class Calculators {
 	 *                         starter card
 	 * @return the number of points obtained from fifteens
 	 */
-	private static int fifteens(HashSet<HashSet<Card>> cardCombinations) {
-		return cardCombinations.stream().mapToInt(Calculators::isFifteen).sum();
+	public int fifteens() {
+		return this.cardCombinations.stream().mapToInt(this::isFifteen).sum();
 	}
 
 	/**
@@ -94,7 +96,7 @@ final class Calculators {
 	 * @param cards a {@code HashSet} of {@code Card} objects
 	 * @return 2 if the card values add up to 15, 0 if not
 	 */
-	private static int isFifteen(HashSet<Card> cards) {
+	private int isFifteen(HashSet<Card> cards) {
 		return cards.stream().mapToInt(Card::getValue).sum() == 15 ? 2 : 0;
 	}
 
@@ -111,7 +113,7 @@ final class Calculators {
 	 * @param cards a {@code HashSet} of {@code Card} objects
 	 * @return the number of points obtained from multiples
 	 */
-	private static int multiples(HashSet<Card> cards) {
+	public int multiples() {
 		// @formatter:off
 		/**
 		 * Counting points from each multiple is simple because a multiple of n cards is
@@ -123,7 +125,7 @@ final class Calculators {
 		 * Quadruple: 4*4 - 4 = 12 points
 		 */
 		// @formatter:on
-		return countDuplicates(cards).values().stream().mapToInt(v -> v * v - v).sum();
+		return countDuplicates(this.handWithStarter).values().stream().mapToInt(v -> v * v - v).sum();
 	}
 
 	/**
@@ -138,7 +140,7 @@ final class Calculators {
 	 *                         starter card
 	 * @return the number of points obtained from runs
 	 */
-	private static int runs(HashSet<HashSet<Card>> cardCombinations) {
+	public int runs() {
 		// @formatter:off
 		/*
 		 * Each card can be part of multiple runs of the same length, but not not
@@ -149,11 +151,11 @@ final class Calculators {
 		 * -The combination 2-3-4 is not counted as a run because 2-3-4-5 trumps it
 		 */
 		// @formatter:on
-		int score = cardCombinations.stream().filter(c -> c.size() == 5).mapToInt(Calculators::isRun).sum();
+		int score = this.cardCombinations.stream().filter(c -> c.size() == 5).mapToInt(this::isRun).sum();
 		if (score == 0) {
-			score += cardCombinations.stream().filter(c -> c.size() == 4).mapToInt(Calculators::isRun).sum();
+			score += this.cardCombinations.stream().filter(c -> c.size() == 4).mapToInt(this::isRun).sum();
 			if (score == 0) {
-				score += cardCombinations.stream().filter(c -> c.size() == 3).mapToInt(Calculators::isRun).sum();
+				score += this.cardCombinations.stream().filter(c -> c.size() == 3).mapToInt(this::isRun).sum();
 			}
 		}
 		return score;
@@ -166,7 +168,7 @@ final class Calculators {
 	 * @return 0 if the cards don't form a run, the length of the run (3-5) if the
 	 *         cards do form a run
 	 */
-	private static int isRun(HashSet<Card> cards) {
+	private int isRun(HashSet<Card> cards) {
 		// Creates a sorted list of card rank numbers (ex: [2, 5, 5, 11, 13])
 		ArrayList<Integer> values = new ArrayList<Integer>(
 				cards.stream().mapToInt(Card::getRankNumber).sorted().boxed().collect(Collectors.toList()));
@@ -190,9 +192,10 @@ final class Calculators {
 	 * @param starter the starter card
 	 * @return the number of points obtained from flushes
 	 */
-	private static int flushes(HashSet<Card> hand, Card starter) {
-		HashSet<Suit> uniqueSuits = new HashSet<Suit>(hand.stream().map(Card::getSuit).collect(Collectors.toSet()));
-		return uniqueSuits.size() == 1 ? 4 + (uniqueSuits.add(starter.getSuit()) ? 0 : 1) : 0;
+	public int flushes() {
+		HashSet<Suit> uniqueSuits = new HashSet<Suit>(
+				this.hand.stream().map(Card::getSuit).collect(Collectors.toSet()));
+		return uniqueSuits.size() == 1 ? 4 + (uniqueSuits.add(this.starter.getSuit()) ? 0 : 1) : 0;
 	}
 
 	/**
@@ -207,9 +210,9 @@ final class Calculators {
 	 * @param starter the starter card
 	 * @return the number of points obtained from nobs
 	 */
-	private static int nobs(HashSet<Card> hand, Card starter) {
-		return hand.stream().filter(c -> c.getRank() == Rank.JACK).map(Card::getSuit)
-				.anyMatch(starter.getSuit()::equals) ? 1 : 0;
+	public int nobs() {
+		return this.hand.stream().filter(c -> c.getRank() == Rank.JACK).map(Card::getSuit)
+				.anyMatch(this.starter.getSuit()::equals) ? 1 : 0;
 	}
 
 	/**
@@ -228,7 +231,7 @@ final class Calculators {
 	 * @param cards an array of card objects
 	 * @return a HashMap that maps each rank number to the number of occurrences
 	 */
-	private static Map<Integer, Integer> countDuplicates(HashSet<Card> cards) {
+	private Map<Integer, Integer> countDuplicates(HashSet<Card> cards) {
 		return cards.stream().collect(Collectors.groupingBy(Card::getRankNumber, Collectors.summingInt(x -> 1)));
 	}
 
