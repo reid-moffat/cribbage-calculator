@@ -92,7 +92,8 @@ public final class Card implements Comparable<Card>, PlayingCard {
 	 * @return the cribbage value of this card
 	 */
 	public int getValue() {
-		return this.rank.getValue();
+		int value = this.rank.getRankNumber();
+		return value > 10 ? 10 : value;
 	}
 
 	/**

@@ -218,7 +218,7 @@ final class CribbageHand implements CribbageCombinations {
 	 */
 	private int multiples() {
 		// @formatter:off
-		/**
+		/*
 		 * Counting points from each multiple is simple because a multiple of n cards is
 		 * worth n*n - n points:
 		 * 
