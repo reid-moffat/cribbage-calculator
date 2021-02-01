@@ -6,20 +6,21 @@ import java.util.Objects;
  * A class that represents cards in the standard 52-card playing card deck
  * 
  * <p>
- * Each card also has a cribbage value based on its rank:
+ * Each card has a {@code Rank} and {@code Suit}
  * 
- * <ul>
- * <li><code>Ace: 1</code>
- * <li><code>Two to Ten: Their respective values</code>
- * <li><code>Face cards: 10</code>
- * </ul>
+ * <p>
+ * A constant, ordered array of all card {@code Ranks} and {@code Suits} can be
+ * obtained with {@code Card.RANKS} and {@code Card.SUITS} respectively
  * 
  * @author Reid Moffat
  */
-public final class Card implements Comparable<Card>, PlayingCard {
+public final class Card implements PlayingCard {
 
 	/**
 	 * An array of all card ranks in order
+	 * 
+	 * <p>
+	 * Ranks are ordered with aces low
 	 */
 	public static final Rank[] RANKS = Rank.values();
 
@@ -29,7 +30,7 @@ public final class Card implements Comparable<Card>, PlayingCard {
 	public static final Suit[] SUITS = Suit.values();
 
 	/**
-	 * This card's rank (ACE, TWO, THREE, ..., QUEEN, KING)
+	 * This card's rank (ACE, TWO, THREE, ..., QUEEN or KING)
 	 */
 	private Rank rank;
 
@@ -41,8 +42,8 @@ public final class Card implements Comparable<Card>, PlayingCard {
 	/**
 	 * Initializes the card with a rank and suit
 	 * 
-	 * @param rank the card's rank
-	 * @param suit the card's suit
+	 * @param rank the card's {@code Rank}
+	 * @param suit the card's {@code Suit}
 	 */
 	public Card(Rank rank, Suit suit) {
 		this.rank = rank;
@@ -52,8 +53,8 @@ public final class Card implements Comparable<Card>, PlayingCard {
 	/**
 	 * Sets the rank and suit of this card
 	 * 
-	 * @param rank the card's new rank
-	 * @param suit the card's new suit
+	 * @param rank the card's new {@code Rank}
+	 * @param suit the card's new {@code Suit}
 	 */
 	@Override
 	public void setState(Rank rank, Suit suit) {
@@ -64,12 +65,9 @@ public final class Card implements Comparable<Card>, PlayingCard {
 	/**
 	 * Returns this card's rank
 	 * 
-	 * <p>
-	 * Rank is not the same as value, a Jack of hearts has the rank jack and a value
-	 * of 10 for example
-	 * 
 	 * @return this card's rank
 	 */
+	@Override
 	public Rank getRank() {
 		return this.rank;
 	}
@@ -79,51 +77,47 @@ public final class Card implements Comparable<Card>, PlayingCard {
 	 * 
 	 * @return this card's suit
 	 */
+	@Override
 	public Suit getSuit() {
 		return this.suit;
 	}
 
 	/**
-	 * Returns the cribbage value of this card
+	 * Returns the rank number of this card
 	 * 
 	 * <p>
-	 * Used to calculate fifteens
+	 * Rank numbers are as follows:
 	 * 
-	 * @return the cribbage value of this card
-	 */
-	public int getValue() {
-		int value = this.rank.getRankNumber();
-		return value > 10 ? 10 : value;
-	}
-
-	/**
-	 * Returns the rank place of this card
-	 * 
-	 * <p>
-	 * Rank places are as follows:
-	 * 
-	 * <ul>
-	 * <li>Ace: 1</li>
-	 * <li>Two to ten: Their respective values</li>
-	 * <li>Jack: 11</li>
-	 * <li>Queen: 12</li>
-	 * <li>King: 13</li>
-	 * </ul>
-	 * 
-	 * <p>
-	 * Used to check for runs and multiples
+	 * <ol>
+	 * <li><code>ACE</code>
+	 * <li><code>TWO</code>
+	 * <li><code>THREE</code>
+	 * <li><code>FOUR</code>
+	 * <li><code>FIVE</code>
+	 * <li><code>SIX</code>
+	 * <li><code>SEVEN</code>
+	 * <li><code>EIGHT</code>
+	 * <li><code>NINE</code>
+	 * <li><code>TEN</code>
+	 * <li><code>JACK</code>
+	 * <li><code>QUEEN</code>
+	 * <li><code>KING</code>
+	 * </ol>
 	 * 
 	 * @return the rank place of this card
 	 */
 	public int getRankNumber() {
 		return this.rank.getRankNumber();
 	}
-	
+
 	/**
 	 * Returns the number of ranks the current card is above the other card
 	 * 
 	 * <p>
-	 * For example,
+	 * Aces are low, and negative values mean the card rank is below
+	 * 
+	 * <p>
+	 * Examples:
 	 * 
 	 * <ul>
 	 * <li>Comparing a jack to a five returns 6</li>
@@ -139,7 +133,7 @@ public final class Card implements Comparable<Card>, PlayingCard {
 	}
 
 	/**
-	 * Returns a hash code value for this card
+	 * Returns a hash code value for this {@code Card}
 	 */
 	@Override
 	public int hashCode() {
@@ -147,7 +141,8 @@ public final class Card implements Comparable<Card>, PlayingCard {
 	}
 
 	/**
-	 * Returns true if both cards have the same rank and suit
+	 * Returns true if both {@code Cards} have the same {@code Rank} and
+	 * {@code Suit}
 	 */
 	@Override
 	public boolean equals(Object obj) {

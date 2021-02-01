@@ -1,12 +1,12 @@
 package card;
 
 /**
- * An interface for a playing card class. Includes methods to modify the card as
- * well as get the card's rank, suit and rank number
+ * An interface for a playing card class. Includes methods to compare cards,
+ * modify the card as well as get the card's rank, suit and rank number
  * 
  * @author Reid Moffat
  */
-public interface PlayingCard {
+public interface PlayingCard extends Comparable<Card> {
 
 	/**
 	 * Sets the rank and suit of this card
