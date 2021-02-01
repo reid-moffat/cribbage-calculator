@@ -62,11 +62,11 @@ public interface CribbageCombinations {
 
 	/**
 	 * Calculates the sum of point combinations for a valid cribbage hand plus
-	 * starter card
+	 * starter {@code Card}
 	 * 
-	 * @param starter the starter card
+	 * @param starter the starter {@code Card}
 	 * @return the total number of points in this cribbage hand with the given
-	 *         starter card
+	 *         starter {@code Card}
 	 */
 	public int totalPoints(Card starter);
 }
