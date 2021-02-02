@@ -17,20 +17,21 @@ import card.Suit;
  * 
  * <p>
  * Initializing this class requires a {@code HashSet} of {@code Card} objects.
- * The hand's cards can be modified using the methods {@code setHand},
+ * The hand's {@code Cards} can be modified using the methods {@code setHand},
  * {@code add}, {@code clear} and {@code remove}
  * 
  * <p>
- * The total points obtained from this cribbage hand can be determined by
- * passing a starter {@code Card} object through {@code totalPoints}
+ * The total points obtained from this cribbage hand can be calculated by
+ * passing a starter {@code Card} object through {@code totalPoints} if this
+ * hand has four {@code Card} objects
  * 
  * @author Reid Moffat
  */
 final class CribbageHand implements CribbageCombinations {
 
 	/**
-	 * A set of unique playing {@code Cards}. Must include 4 cards for points to be
-	 * calculated
+	 * A set of unique playing {@code Cards}. Must include 4 {@code Cards} for
+	 * points to be calculated
 	 * 
 	 * <p>
 	 * Does not include the starter {@code Card}
@@ -46,7 +47,8 @@ final class CribbageHand implements CribbageCombinations {
 	private Card starter;
 
 	/**
-	 * A set that includes the hand of four {@code Cards} and the starter card
+	 * A set that includes the hand of four {@code Card} objects and the starter
+	 * {@code Card}
 	 */
 	private HashSet<Card> handWithStarter;
 
@@ -80,6 +82,14 @@ final class CribbageHand implements CribbageCombinations {
 	}
 
 	/**
+	 * Removes all {@code Card} objects from this hand
+	 */
+	@Override
+	public void clearHand() {
+		this.hand.clear();
+	}
+
+	/**
 	 * Adds a {@code Card} object to this hand
 	 * 
 	 * @param card a {@code Card} object
@@ -90,22 +100,15 @@ final class CribbageHand implements CribbageCombinations {
 	}
 
 	/**
-	 * Removes all {@code Card} objects from this hand
-	 */
-	@Override
-	public void clear() {
-		this.hand.clear();
-	}
-
-	/**
 	 * Removes a {@code Card} object from this hand
 	 * 
 	 * @param card a {@code Card} object
+	 * @throws IllegalArgumentException if the {@code Card} is not in the hand
 	 */
 	@Override
 	public void remove(Card card) {
 		if (!this.hand.remove(card)) {
-			throw new IllegalArgumentException("card not present in hand");
+			throw new IllegalArgumentException(card.toString() + "is not present in this hand");
 		}
 	}
 
@@ -136,47 +139,55 @@ final class CribbageHand implements CribbageCombinations {
 	 * <p>
 	 * This method must always be called in totalPoints()
 	 * 
-	 * @param starter
+	 * @param starter the starter {@code Card} object
 	 */
 	private void refreshHand(Card starter) {
+		//@formatter:off
+		/*
+		 * Different point methods require different input types:
+		 * -Fifteens accepts any combination of the hand with starter card
+		 * -Multiples counts duplicates in the hand with starter card
+		 * -Runs uses any combination of the hand plus starter card
+		 * -Flushes and nobs need to differentiate between the starter and hand
+		 */
+		//@formatter:on
 		this.starter = starter;
 
 		this.handWithStarter = new HashSet<Card>(hand);
 		this.handWithStarter.add(this.starter);
 
 		/*
-		 * Although calculating a power set is O(2^n), there are always only five cards
-		 * so this method is still efficient
+		 * Although calculating a power set is O(2^n), a hand and starter card is
+		 * guaranteed to only have five {@code Card} objects
 		 * 
-		 * Using a power set significantly reduces the amount of test cases, allowing
-		 * methods to be implemented much more concisely using only a few lines in most
-		 * cases
+		 * Using a power set significantly reduces the number of test cases, allowing
+		 * methods to be much more concise
 		 */
 		this.cardCombinations = powerSet(handWithStarter);
 	}
 
 	/**
-	 * Calculates the sum of point combinations for a valid cribbage hand plus
-	 * starter card
+	 * Calculates the sum of point combinations for this hand (if it includes 4
+	 * {@code Card} objects) with a starter {@code Card} object
 	 * 
-	 * <p>
-	 * A valid cribbage hand is defined as a {@code HashSet} containing four
-	 * {@code Card} objects
-	 * 
-	 * @param starter the starter card
+	 * @param starter the starter {@code Card}
 	 * @return the total number of points in this cribbage hand with the given
-	 *         starter card
+	 *         starter {@code Card}
 	 * @throws IllegalArgumentException if {@code hand} does not contain exactly
 	 *                                  four {@code Card} objects or {@code starter}
 	 *                                  is {@code null}
 	 */
 	@Override
 	public int totalPoints(Card starter) {
+		/* Makes sure the hand is valid */
 		if (hand == null || starter == null || hand.size() != 4) {
 			throw new IllegalArgumentException("illegal hand and/or starter card");
 		}
+
+		/* Makes sure all fields are up to date */
 		this.refreshHand(starter);
 
+		/* Sums up all possible points from this hand */
 		return fifteens() + multiples() + runs() + flushes() + nobs();
 	}
 
@@ -185,13 +196,20 @@ final class CribbageHand implements CribbageCombinations {
 	 * 
 	 * <p>
 	 * Each unique combination of cards that add up to 15 is worth two points. Any
-	 * number of cards can be used for each combination, and cards may be used for
-	 * multiple fifteens. All face cards are worth 10 when calculating fifteens
+	 * number of cards (between 2 and 5) can be used for each combination, and cards
+	 * may be used for multiple fifteens. All face cards are worth 10 when
+	 * calculating fifteens
+	 * 
+	 * <p>
+	 * For example, a hand with four 5s and a three has 8 (2 points from each
+	 * fifteen, 4 choose 3 = 4 fifteens from the fives) points from fifteens
 	 * 
 	 * @return the number of points obtained from fifteens
 	 */
 	private int fifteens() {
-		return this.cardCombinations.stream().mapToInt(this::isFifteen).sum();
+		return this.cardCombinations.stream() // Every card combination is tested
+				.mapToInt(this::isFifteen) // 2 points for each fifteen, 0 for not
+				.sum(); // Return the total points from fifteens
 	}
 
 	/**
@@ -201,7 +219,26 @@ final class CribbageHand implements CribbageCombinations {
 	 * @return 2 if the card values add up to 15, 0 if not
 	 */
 	private int isFifteen(HashSet<Card> cards) {
-		return cards.stream().mapToInt(Card::getValue).sum() == 15 ? 2 : 0;
+		return cards.stream().mapToInt(this::cribbageValue) // Maps each card to it's cribbage value (10 for face cards)
+				.sum() == 15 ? 2 : 0; // If the cards sum to 15, this is a fifteen and is worth 2 points
+	}
+
+	/**
+	 * Returns the cribbage value of a card. Used to calculate fifteens
+	 * 
+	 * <p>
+	 * Ranks are as follows:
+	 * <ul>
+	 * <li>Ace: 1</li>
+	 * <li>Two to ten: Their respective values</li>
+	 * <li>Jack, queen and king: 10</li>
+	 * </ul>
+	 * 
+	 * @param card a {@code Card} object
+	 * @return the cribbage value of the {@code Card} object
+	 */
+	private int cribbageValue(Card card) {
+		return card.getRankNumber() > 10 ? 10 : card.getRankNumber(); // All face cards are worth 10
 	}
 
 	/**
@@ -228,7 +265,8 @@ final class CribbageHand implements CribbageCombinations {
 		 * Quadruple: 4*4 - 4 = 12 points
 		 */
 		// @formatter:on
-		return countDuplicates(this.handWithStarter).values().stream().mapToInt(v -> v * v - v).sum();
+		return countDuplicates(this.handWithStarter).values() // Count of each rank present in the hand + starter
+				.stream().mapToInt(v -> v * v - v).sum(); // Total points from multiples
 	}
 
 	/**
@@ -254,6 +292,8 @@ final class CribbageHand implements CribbageCombinations {
 		 */
 		// @formatter:on
 		int score = this.cardCombinations.stream().filter(c -> c.size() == 5).mapToInt(this::isRun).sum();
+
+		/* It is only possible to have one length of run possible in a hand */
 		if (score == 0) {
 			score += this.cardCombinations.stream().filter(c -> c.size() == 4).mapToInt(this::isRun).sum();
 			if (score == 0) {
@@ -271,11 +311,11 @@ final class CribbageHand implements CribbageCombinations {
 	 *         cards do form a run
 	 */
 	private int isRun(HashSet<Card> cards) {
-		// Creates a sorted list of card rank numbers (ex: [2, 5, 5, 11, 13])
+		/* Creates a sorted list of card rank numbers (ex: [2, 5, 5, 11, 13]) */
 		ArrayList<Integer> values = new ArrayList<Integer>(
 				cards.stream().mapToInt(Card::getRankNumber).sorted().boxed().collect(Collectors.toList()));
-		// If all of the rank numbers are consecutive, the length of the run (# of
-		// points) is returned
+
+		/* If any card is 'out of order', no points are given for runs */
 		return IntStream.range(0, values.size() - 1).anyMatch(i -> values.get(i + 1) != values.get(i) + 1) ? 0
 				: values.size();
 	}
@@ -293,9 +333,11 @@ final class CribbageHand implements CribbageCombinations {
 	 * @return the number of points obtained from flushes
 	 */
 	private int flushes() {
-		HashSet<Suit> uniqueSuits = new HashSet<Suit>(
-				this.hand.stream().map(Card::getSuit).collect(Collectors.toSet()));
-		return uniqueSuits.size() == 1 ? 4 + (uniqueSuits.add(this.starter.getSuit()) ? 0 : 1) : 0;
+		/* A set of all the suits in this hand */
+		HashSet<Suit> suits = new HashSet<Suit>(this.hand.stream().map(Card::getSuit).collect(Collectors.toSet()));
+
+		/* If all the suits are the same, the set with only have one object */
+		return suits.size() == 1 ? 4 + (suits.add(this.starter.getSuit()) ? 0 : 1) : 0;
 	}
 
 	/**
@@ -309,7 +351,8 @@ final class CribbageHand implements CribbageCombinations {
 	 * @return the number of points obtained from nobs
 	 */
 	private int nobs() {
-		return this.hand.stream().filter(c -> c.getRank() == Rank.JACK).map(Card::getSuit)
+		return this.hand.stream().filter(c -> c.getRank() == Rank.JACK) // Filter out non jacks
+				.map(Card::getSuit) // All jack suits
 				.anyMatch(this.starter.getSuit()::equals) ? 1 : 0;
 	}
 
@@ -318,7 +361,7 @@ final class CribbageHand implements CribbageCombinations {
 	 * number
 	 * 
 	 * <p>
-	 * For example, three kings, an ace and four would have the key value pairs:
+	 * For example, three kings, an ace and four would have the key-value pairs:
 	 * 
 	 * <ul>
 	 * <li><code>1: 1</code></li>
@@ -326,8 +369,8 @@ final class CribbageHand implements CribbageCombinations {
 	 * <li><code>13: 3</code></li>
 	 * </ul>
 	 * 
-	 * @param cards an array of card objects
-	 * @return a HashMap that maps each rank number to the number of occurrences
+	 * @param cards an array of {@code Card} objects
+	 * @return a {@code Map} that maps each rank number to the number of occurrences
 	 */
 	private Map<Integer, Integer> countDuplicates(HashSet<Card> cards) {
 		return cards.stream().collect(Collectors.groupingBy(Card::getRankNumber, Collectors.summingInt(x -> 1)));

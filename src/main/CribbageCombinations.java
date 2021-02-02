@@ -28,16 +28,16 @@ public interface CribbageCombinations {
 	public void setHand(HashSet<Card> hand);
 
 	/**
+	 * Removes all {@code Card} objects from this hand
+	 */
+	public void clearHand();
+
+	/**
 	 * Adds a {@code Card} object to this hand
 	 * 
 	 * @param card a {@code Card} object
 	 */
 	public void add(Card card);
-
-	/**
-	 * Removes all {@code Card} objects from this hand
-	 */
-	public void clear();
 
 	/**
 	 * Removes a {@code Card} object from this hand
