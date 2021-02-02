@@ -17,6 +17,6 @@ A handy scoring sheet can be found [here](https://i.pinimg.com/originals/f8/c8/8
 
 ## Try it out ##
 
-If you would like to test this calculator, run UserInterface.java in src/Main. Instructions will be provided to the console
+If you would like to test this calculator, run UserInterface.java in src/main. Instructions will be provided to the console
 
 Currently, this program just completed the brunt work of calculating the average number of points obtained for each drop combination. An option to indicate which player has the crib as well as other strategies will be added
