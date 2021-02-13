@@ -204,21 +204,27 @@ final class UserInterface {
 		CribbageHand hand = new CribbageHand(new HashSet<Card>(this.dealthHand));
 
 		/*
-		 * The number of possible starter cards (a double value so dividing with it
-		 * won't floor the result to an int)
+		 * The player has seen either 5 or 6 cards so far (hand.size()), implying that
+		 * the remaining 47 or 48 cards respectively could all possibly be the starter
 		 */
-		final double unknownCards = 52 - hand.size();
+		final int unknownCards = 52 - hand.size();
 
 		/* With 6 cards, 2 must be dropped */
 		if (hand.size() == 6) {
 			sb.append("Average points for each drop combination:");
+
+			/*
+			 * Each combination of cards in the hand is temporarily removed and the average
+			 * number of points (from all starter card possibilities) from the remaining
+			 * hand is calculated
+			 */
 			for (Card[] combination : subset2(hand.getCards())) {
 				/* The two cards to be dropped */
 				hand.remove(combination[0]);
 				hand.remove(combination[1]);
 
 				/* Calculate the total number of points (all starters) for this combination */
-				int totalPoints = cardPile.stream().filter(this::notInHand).mapToInt(hand::totalPoints).sum();
+				double totalPoints = cardPile.stream().filter(this::notInHand).mapToInt(hand::totalPoints).sum();
 
 				/* The combination and its average number of points to 2 decimals */
 				sb.append("\n" + combination[0].toString() + " and " + combination[1].toString() + ": "
@@ -232,12 +238,17 @@ final class UserInterface {
 			/* With 5 cards, only one needs to be dropped */
 		} else {
 			sb.append("Average points for each card dropped:");
+
+			/*
+			 * Each card in the hand is temporarily removed and the average number of points
+			 * (from all starter card possibilities) from the remaining hand is calculated
+			 */
 			for (Card droppedCard : hand.getCards()) {
 				/* The card to be dropped */
 				hand.remove(droppedCard);
 
 				/* Calculate the total number of points (all starters) for this combination */
-				int totalPoints = cardPile.stream().filter(this::notInHand).mapToInt(hand::totalPoints).sum();
+				double totalPoints = cardPile.stream().filter(this::notInHand).mapToInt(hand::totalPoints).sum();
 
 				/* The combination and its average number of points to 2 decimals */
 				sb.append(
