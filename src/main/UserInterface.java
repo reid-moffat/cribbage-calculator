@@ -204,8 +204,9 @@ final class UserInterface {
 		CribbageHand hand = new CribbageHand(new HashSet<Card>(this.dealthHand));
 
 		/*
-		 * The player has seen either 5 or 6 cards so far (hand.size()), implying that
-		 * the remaining 47 or 48 cards respectively could all possibly be the starter
+		 * The player has seen either 5 or 6 cards so far (from their hand), implying
+		 * that the remaining 47 or 48 cards respectively could all possibly be the
+		 * starter
 		 */
 		final int unknownCards = 52 - hand.size();
 
@@ -283,7 +284,7 @@ final class UserInterface {
 	 *         otherwise
 	 */
 	private static Card checkValidCard(String card) {
-		card = card.toUpperCase(); // Not case sensitive
+		card = card.trim().toUpperCase(); // Not case sensitive
 		/*
 		 * If a card is a ten, change the "10" part of the string to "T" This makes it
 		 * so all valid card strings have a length of 2 for easier use
