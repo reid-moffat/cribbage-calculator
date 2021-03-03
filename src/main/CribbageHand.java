@@ -307,8 +307,8 @@ final class CribbageHand implements CribbageCombinations {
 	 * Checks if the supplied cards are consecutive to form a run
 	 * 
 	 * @param cards a {@code HashSet} of {@code Card} objects
-	 * @return 0 if the cards don't form a run, the length of the run (3-5) if the
-	 *         cards do form a run
+	 * @return 0 if the cards don't form a run; the length of the run (3, 4 or 5) if
+	 *         the cards do form a run
 	 */
 	private int isRun(HashSet<Card> cards) {
 		/* Creates a sorted list of card rank numbers (ex: [2, 5, 5, 11, 13]) */
@@ -316,7 +316,7 @@ final class CribbageHand implements CribbageCombinations {
 				cards.stream().mapToInt(Card::getRankNumber).sorted().boxed().collect(Collectors.toList()));
 
 		/* If any card is 'out of order', no points are given for runs */
-		return IntStream.range(0, values.size() - 1).anyMatch(i -> values.get(i + 1) != values.get(i) + 1) ? 0
+		return IntStream.range(0, values.size() - 1).anyMatch(i -> values.get(i) + 1 != values.get(i + 1)) ? 0
 				: values.size();
 	}
 
@@ -352,7 +352,7 @@ final class CribbageHand implements CribbageCombinations {
 	 */
 	private int nobs() {
 		return this.hand.stream().filter(c -> c.getRank() == Rank.JACK) // Filter out non jacks
-				.map(Card::getSuit) // All jack suits
+				.map(Card::getSuit) // The stream includes all of the jack's suits
 				.anyMatch(this.starter.getSuit()::equals) ? 1 : 0;
 	}
 
